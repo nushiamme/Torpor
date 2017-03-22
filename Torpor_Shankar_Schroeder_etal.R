@@ -136,6 +136,30 @@ mass.agg
 freq_sp$prop <- (freq_sp$Torpid/freq_sp$Total)*100
 freq_sp$mass <- mass.agg$Mass
 
+## Melt BBLH dataframe to put torpid and normo in same column
+m_BBLH_tor_nor <- melt(BBLH_torpor, id.vars="Tc_min_C", 
+                       measure.vars = c("AvgEE_torpid_MassCorrected", "AvgEE_normo_MassCorrected"))
+levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_normo_MassCorrected"] <- 
+  "Avg Normothermic EE"
+levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_torpid_MassCorrected"] <- 
+  "Avg Torpid EE"
+
+m_BBLH_tor_nor$variable <- factor(m_BBLH_tor_nor$variable, 
+                                  levels = rev(levels(m_BBLH_tor_nor$variable)))
+
+
+## Melt BBLH dataframe to put torpid and normo in same column
+m_GCB_tor_nor <- melt(GCB_torpor, id.vars="Tc_min_C", 
+                      measure.vars = c("AvgEE_torpid_MassCorrected", "AvgEE_normo_MassCorrected"))
+levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_normo_MassCorrected"] <- 
+  "Avg Normothermic EE"
+levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_torpid_MassCorrected"] <- 
+  "Avg Torpid EE"
+
+m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels = 
+                                   rev(levels(m_GCB_tor_nor$variable)))
+
+
 #### General functions ####
 ## Saving standard theme  
 my_theme <- theme_classic(base_size = 30) + 
@@ -425,7 +449,20 @@ energy_temp_site <- ggplot(torpor, aes(as.numeric(Tc_mean_C), NEE_kJ)) + geom_bo
         axis.title.y = element_text(size=16, face="bold"), axis.text.y = element_text(size=14)) 
 energy_temp_site
 
-## NEE plot by chamber temperature, facet by site and color by species
+## Mass-corrected NEE plot by chamber temperature, facet by site and color by species
+energyM_temp_site <- ggplot(torpor, aes(as.numeric(Tc_mean_C), NEE_MassCorrected)) + #geom_boxplot() +
+  geom_point(aes(shape = factor(Species)), size=4) + 
+  scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
+  labs(shape='Species') + xlim(5, 30) + theme_bw() + 
+  geom_text(aes(label=Torpid_not, hjust=1.75, fontface="bold"),size=5) +
+  #facet_grid(.~Site_new) + ## Add this to face by site
+  ylab(NEE_corrlab) + xlab(Tc.xlab) +
+  theme(axis.title.x = element_text(size=16, face="bold"),
+        axis.text.x = element_text(size=14),
+        axis.title.y = element_text(size=16, face="bold"), axis.text.y = element_text(size=14)) 
+energyM_temp_site
+
+## NEE plot site
 NEE_site <- ggplot(torpor, aes(Site_new, NEE_MassCorrected)) + geom_boxplot(outlier.size = 3) +
   theme_classic(base_size=30) +
   ylab("Nighttime energy expenditure (kJ)") + xlab("Site") +
@@ -433,6 +470,7 @@ NEE_site <- ggplot(torpor, aes(Site_new, NEE_MassCorrected)) + geom_boxplot(outl
         panel.border = element_rect(colour = "black", fill=NA)) 
 NEE_site
 
+## Hours by site
 Hours_site <- ggplot(torpor, aes(Site_new, Hours_torpid)) + geom_boxplot(outlier.size = 3) +
   theme_classic(base_size=30) +
   ylab("Hours torpid") + xlab("Site") +
@@ -465,7 +503,7 @@ lay_out(list(energy_temp, 1, 1),
         list(energyM_temp, 2, 1),
         list(energyM_temp_site, 2, 2))
 
-#### Non-mass-corrected min and avg graphs ####
+#### Non-mass-corrected min and avg energy expenditure in normothermy or torpor graphs ####
 ## Min normo EE by Tc
 min_normo_EE <- ggplot(torpor, aes(as.numeric(Tc_mean_C), as.numeric(Min_EE_normo))) + theme_bw() + 
   geom_point(aes(shape = factor(Species)), size=4) +  labs(shape ='Species') +
@@ -536,7 +574,7 @@ m_min_torpid_EE <- ggplot(torpor, aes(as.numeric(Tc_mean_C),
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   geom_smooth(method=lm, color="black") +
   geom_text(x = 16, y = 0.6, label = lm_eqn(torpor, torpor$AvgEE_normo_MassCorrected, 
-                                            torpor$Tc_min_C), parse=T) +
+                                           torpor$Tc_min_C), parse=F) +
   scale_color_brewer(palette = "Set1") + #xlim(-7, 50) +
   ylab("Min EE torpid (kJ/g)") + xlab(Tc.xlab) +
   theme(axis.title.x = element_text(size=16, face="bold"),
@@ -586,8 +624,7 @@ m_min_normo_EE_Tcmin_eq <- ggplot(torpor, aes(as.numeric(Tc_min_C),
                                               as.numeric(MinEE_normo_MassCorrected))) +  
   theme_bw() + geom_point(aes(shape = factor(Species)), size=4) +  labs(shape ='Species') +
   geom_smooth(method=lm, color="black") +
-  geom_text(x = 19, y = 0.38, label = lm_eqn(torpor, torpor$MinEE_normo_MassCorrected, 
-                                             torpor$Tc_min_C), parse=T) +
+  geom_text(x = 19, y = 0.38, label = lm_eqn(torpor$MinEE_normo_MassCorrected, torpor$Tc_min_C), parse=T) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + xlim(0, 32) +
   geom_text(aes(label=Torpid_not, hjust=1.75, fontface="bold"),size=5) +
@@ -602,7 +639,7 @@ m_min_torpid_EE_Tcmin_eq <- ggplot(torpor, aes(as.numeric(Tc_min_C),
                                                as.numeric(MinEE_torpid_MassCorrected))) + 
   theme_bw() + geom_point(aes(shape = factor(Species)), size=4) + labs(shape ='Species') +
   geom_smooth(method=lm, color="black") +
-  geom_text(x = 15, y = 0.06, label = lm_eqn(torpor, torpor$MinEE_torpid_MassCorrected, 
+  geom_text(x = 15, y = 0.06, label = lm_eqn(torpor$MinEE_torpid_MassCorrected, 
                                              torpor$Tc_min_C), parse=T) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + #xlim(-7, 50) +
@@ -616,7 +653,7 @@ m_min_torpid_EE_Tcmin_eq
 m_avg_normo_EE_Tcmin_eq <- ggplot(torpor, aes(as.numeric(Tc_min_C), AvgEE_normo_MassCorrected)) + 
   theme_bw(base_size=30) + geom_point(aes(shape = factor(Species)), size=4) + 
   labs(shape ='Species') + geom_smooth(method=lm, color="black") +
-  geom_text(x = 16, y = 0.6, label = lm_eqn(torpor, torpor$AvgEE_normo_MassCorrected, 
+  geom_text(x = 16, y = 0.6, label = lm_eqn(torpor$AvgEE_normo_MassCorrected, 
                                             torpor$Tc_min_C), parse=T, size=10) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + #xlim(0, 30) +
@@ -631,8 +668,8 @@ m_avg_normo_EE_Tcmin_eq
 m_avg_torpid_EE_Tcmin_eq <- ggplot(torpor, aes(Tc_min_C, AvgEE_torpid_MassCorrected)) + theme_bw() + 
   geom_point(aes(shape = factor(Species)), size=4) + labs(shape ='Species') +
   geom_smooth(method=lm, color="black") +
-  #geom_text(x = 13, y = 0.095, label = lm_eqn(torpor, torpor$AvgEE_torpid_MassCorrected, 
-  #                                         torpor$Tc_min_C), parse=T) +
+  geom_text(x = 13, y = 0.095, label = lm_eqn(torpor$AvgEE_torpid_MassCorrected, 
+                                           torpor$Tc_min_C), parse=T) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + 
   #facet_grid(.~Site,space="free") +
@@ -654,7 +691,7 @@ lay_out(list(m_avg_normo_EE_Tcmin_eq, 1, 1),
 m_AvgEE_normo_Tcmin_eq <- ggplot(torpor, aes(as.numeric(Tc_mean_C), AvgEE_normo_MassCorrected)) + 
   theme_bw() + geom_point(aes(shape = factor(Species)), size=4) + labs(shape ='Species') +
   geom_smooth(method=lm, color="black") +
-  geom_text(x = 16, y = 0.6, label = lm_eqn(torpor, torpor$AvgEE_normo_MassCorrected, 
+  geom_text(x = 16, y = 0.6, label = lm_eqn(torpor$AvgEE_normo_MassCorrected, 
                                             torpor$Tc_min_C), parse=T) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + xlim(7, 30) +
@@ -666,12 +703,13 @@ m_AvgEE_normo_Tcmin_eq <- ggplot(torpor, aes(as.numeric(Tc_mean_C), AvgEE_normo_
 m_AvgEE_normo_Tcmin_eq
 
 #### Species- specific graphs ####
-## Comparing HC and SC BBLH energy expenditure in torpor
+## Comparing HC and SC BBLH energy expenditure in torpor with min temp of chamber in that hour
 ggplot(BBLH_torpor, aes(Site, AvgEE_torpid_MassCorrected)) + my_theme +
   geom_boxplot() + geom_point(aes(col=Tc_min_C), size=5) + 
   scale_colour_gradient(low = "blue", high = "red", "Min chamber temperature\n") +
   ylab("Hourly Energy expenditure in torpid birds (J/h*g)")
 
+## Comparing HC and SC BBLH energy expenditure in normothermy with min temp of chamber in that hour
 ggplot(BBLH_torpor, aes(Site, AvgEE_normo_MassCorrected)) + my_theme +
   geom_boxplot() + geom_point(aes(col=Tc_min_C), size=5) + 
   scale_colour_gradient(low = "blue", high = "red", "Min chamber temperature\n") +
@@ -691,25 +729,14 @@ m_BBLH_avgEE_normo_Tcmin_eq <- ggplot(BBLH_torpor, aes(as.numeric(Tc_min_C),
         axis.title.y = element_text(size=24, face="bold"), axis.text.y = element_text(size=24)) 
 m_BBLH_avgEE_normo_Tcmin_eq
 
-## BBLH Avg mass-corrected hourly torpid EE vs. min Tc with regression line
+## BBLH Avg mass-corrected hourly torpid EE vs. min Tc with regression line, facet by site
 m_BBLH_avgEE_torpid_Tcmin_eq <- ggplot(BBLH_torpor, aes(as.numeric(Tc_min_C), 
                                                         AvgEE_torpid_MassCorrected)) + 
   my_theme + geom_point(size=4) + geom_smooth(method=lm) + facet_grid(~Site) +
-  geom_text(x = 14, y = 0.07, label = lm_eqn(BBLH_torpor, BBLH_torpor$AvgEE_torpid_MassCorrected, 
+  geom_text(x = 14, y = 0.07, label = lm_eqn(BBLH_torpor$AvgEE_torpid_MassCorrected, 
                                              BBLH_torpor$Tc_min_C), parse=T, size=8) +
   ylab("Avg BBLH EE torpid (kJ/g)") + xlab(Tc_min.xlab) 
 m_BBLH_avgEE_torpid_Tcmin_eq
-
-## Melt BBLH dataframe to put torpid and normo in same column
-m_BBLH_tor_nor <- melt(BBLH_torpor, id.vars="Tc_min_C", 
-                       measure.vars = c("AvgEE_torpid_MassCorrected", "AvgEE_normo_MassCorrected"))
-levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_normo_MassCorrected"] <- 
-  "Avg Normothermic EE"
-levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_torpid_MassCorrected"] <- 
-  "Avg Torpid EE"
-
-m_BBLH_tor_nor$variable <- factor(m_BBLH_tor_nor$variable, 
-                                  levels = rev(levels(m_BBLH_tor_nor$variable)))
 
 ## Both normo and torpid avg EE for BBLH on same graph
 BBLH_tor_nor <- ggplot(m_BBLH_tor_nor, aes(as.numeric(Tc_min_C), value, shape=variable)) +
@@ -739,7 +766,7 @@ BBLH_tor_nor_col
 m_BBLH_minEE_normo_Tcmin_eq <- ggplot(BBLH_torpor, aes(as.numeric(Tc_min_C), 
                                                        MinEE_normo_MassCorrected)) + 
   theme_bw() + geom_point() + geom_smooth(method=lm, color="black") +
-  geom_text(x = 16, y = 0.32, label = lm_eqn(BBLH_torpor, BBLH_torpor$MinEE_normo_MassCorrected, 
+  geom_text(x = 16, y = 0.32, label = lm_eqn(BBLH_torpor$MinEE_normo_MassCorrected, 
                                              BBLH_torpor$Tc_min_C), parse=T) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + #xlim(0, 30) +
@@ -754,7 +781,7 @@ m_BBLH_minEE_normo_Tcmin_eq
 m_BBLH_minEE_torpid_Tcmin_eq <- ggplot(BBLH_torpor, aes(as.numeric(Tc_min_C), 
                                                         MinEE_torpid_MassCorrected)) + 
   theme_bw() + geom_point() + geom_smooth(method=lm) +
-  geom_text(x = 14, y = 0.024, label = lm_eqn(BBLH_torpor, BBLH_torpor$MinEE_torpid_MassCorrected, 
+  geom_text(x = 14, y = 0.024, label = lm_eqn(BBLH_torpor$MinEE_torpid_MassCorrected, 
                                               BBLH_torpor$Tc_min_C), parse=T, size=6) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + #xlim(0, 30) +
@@ -774,7 +801,7 @@ lay_out(list(m_BBLH_avgEE_normo_Tcmin_eq, 1, 1),
 m_GCB_avgEE_normo_Tcmin_eq <- ggplot(GCB_torpor, aes(as.numeric(Tc_min_C), 
                                                      AvgEE_normo_MassCorrected)) +
   theme_bw() + geom_point(size=4) + geom_smooth(method=lm) +
-  geom_text(x=21, y=0.32, label=lm_eqn(GCB_torpor, GCB_torpor$AvgEE_normo_MassCorrected,
+  geom_text(x=21, y=0.32, label=lm_eqn(GCB_torpor$AvgEE_normo_MassCorrected,
                                        GCB_torpor$Tc_min_C), parse=T,size=8) +
   ylab("Avg GCB EE normo (kJ/g)") + xlab(Tc_min.xlab) +
   theme(axis.title.x = element_text(size=24, face="bold"),
@@ -785,7 +812,7 @@ m_GCB_avgEE_normo_Tcmin_eq
 m_GCB_avgEE_torpid_Tcmin_eq <- ggplot(GCB_torpor, aes(as.numeric(Tc_min_C), 
                                                       AvgEE_torpid_MassCorrected)) +
   theme_bw() + geom_point(size=4) + geom_smooth(method=lm) +
-  geom_text(x=21, y=0.10, label=lm_eqn(GCB_torpor, GCB_torpor$AvgEE_torpid_MassCorrected,
+  geom_text(x=21, y=0.10, label=lm_eqn(GCB_torpor$AvgEE_torpid_MassCorrected,
                                        GCB_torpor$Tc_min_C), parse=T,size=8) +
   ylab("Avg GCB EE torpid (kJ/g)") + xlab(Tc_min.xlab) +
   theme(axis.title.x = element_text(size=24, face="bold"),
@@ -794,17 +821,6 @@ m_GCB_avgEE_torpid_Tcmin_eq <- ggplot(GCB_torpor, aes(as.numeric(Tc_min_C),
 m_GCB_avgEE_torpid_Tcmin_eq
 
 grid.arrange(m_GCB_avgEE_normo_Tcmin_eq, m_GCB_avgEE_torpid_Tcmin_eq, nrow=1, ncol=2)
-
-## Melt BBLH dataframe to put torpid and normo in same column
-m_GCB_tor_nor <- melt(GCB_torpor, id.vars="Tc_min_C", 
-                      measure.vars = c("AvgEE_torpid_MassCorrected", "AvgEE_normo_MassCorrected"))
-levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_normo_MassCorrected"] <- 
-  "Avg Normothermic EE"
-levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_torpid_MassCorrected"] <- 
-  "Avg Torpid EE"
-
-m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels = 
-                                   rev(levels(m_GCB_tor_nor$variable)))
 
 ## Both normo and torpid avg EE for GCB on same graph
 GCB_tor_nor_col <- ggplot(m_GCB_tor_nor, aes(as.numeric(Tc_min_C), value, color=variable)) +
