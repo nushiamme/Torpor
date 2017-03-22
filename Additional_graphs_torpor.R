@@ -1,5 +1,6 @@
 ## Torpor paper, Shankar, Schroeder et al.
 ## Script by: Anusha Shankar
+## Script branched off from old versions on March 22, 2017
 
 #### libraries and reading in data ####
 library(ggplot2)
