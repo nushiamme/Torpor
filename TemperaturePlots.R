@@ -6,7 +6,7 @@
 ## at nushiamme<at>gmail<dot>com
 # * = equal authors
 
-require(ggplot2)
+require(ggplot2) 
 require(reshape)
 
 ## Set wd and read in files
