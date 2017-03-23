@@ -32,7 +32,6 @@ torpor$Prop_hours <- as.numeric(as.character(torpor$Prop_hours))
 ##### Adding columns #######
 ## Adding column dividing NEE by 2/3*Mass to correct for mass with allometric scaling
 torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
-torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass)
 
 ## Adding columns to correct for mass in Avg EE normo, Min EE normo, torpid, etc. Don't finally use these in paper
 torpor$AvgEE_normo_MassCorrected <- torpor$Avg_EE_hourly_normo/(torpor$Mass^(2/3))
