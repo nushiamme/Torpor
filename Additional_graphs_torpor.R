@@ -32,6 +32,7 @@ torpor$Prop_hours <- as.numeric(as.character(torpor$Prop_hours))
 ##### Adding columns #######
 ## Adding column dividing NEE by 2/3*Mass to correct for mass with allometric scaling
 torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
+torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass)
 
 ## Adding columns to correct for mass in Avg EE normo, Min EE normo, torpid, etc. Don't finally use these in paper
 torpor$AvgEE_normo_MassCorrected <- torpor$Avg_EE_hourly_normo/(torpor$Mass^(2/3))
@@ -204,7 +205,7 @@ energyM_hours <- ggplot(torpor, aes(Hours_torpid2, NEE_MassCorrected, label=roun
   geom_point(aes(shape = factor(Species), col=savings), size=4) + theme_bw(base_size=30) +
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) + scale_color_continuous(low='blue', high='red') +
   geom_smooth(method=lm, color="black") + geom_text(vjust=--2) +
-  geom_text(x = 5, y = 5.5, label = lm_eqn(torpor$NEE_MassCorrected, torpor$Hours_torpid2), 
+  geom_text(x = 5, y = 3, label = lm_eqn(torpor$NEE_MassCorrected, torpor$Hours_torpid2), 
             parse=T, size=10) +
   labs(shape='Species') + #scale_color_brewer(palette = "Set1") + theme_bw(base_size=30) +
   ylab(NEE_corrlab) + xlab("Torpor duration")
