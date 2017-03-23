@@ -33,7 +33,7 @@ torpor$Prop_hours <- as.numeric(as.character(torpor$Prop_hours))
 ## Adding column dividing NEE by 2/3*Mass to correct for mass with allometric scaling
 torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
 
-## Adding columns to correct for mass in Avg EE normo, Min EE normo, torpid, etc. 
+## Adding columns to correct for mass in Avg EE normo, Min EE normo, torpid, etc. Don't finally use these in paper
 torpor$AvgEE_normo_MassCorrected <- torpor$Avg_EE_hourly_normo/(torpor$Mass^(2/3))
 torpor$MinEE_normo_MassCorrected <- as.numeric(torpor$Min_EE_normo)/(torpor$Mass^(2/3))
 torpor$AvgEE_torpid_MassCorrected <- torpor$Avg_EE_hourly_torpid/(torpor$Mass^(2/3))
@@ -70,6 +70,53 @@ BBLH_torpor <- subset(torpor, Species=="BBLH")
 
 ## Subset just GCB data
 GCB_torpor <- subset(torpor, Species=="GCB")
+
+#### General functions ####
+
+## Setting up standard themes for plots
+my_theme <- theme_classic(base_size = 30) + 
+  theme(axis.title.y = element_text(color = "black", vjust = 2),
+        panel.border = element_rect(colour = "black", fill=NA))
+
+## Theme with slightly smaller font
+my_theme2 <- my_theme + theme_classic(base_size = 15)
+
+## To arrange graphs
+lay_out = function(...) {    
+  x <- list(...)
+  n <- max(sapply(x, function(x) max(x[[2]])))
+  p <- max(sapply(x, function(x) max(x[[3]])))
+  grid::pushViewport(grid::viewport(layout = grid::grid.layout(n, p)))    
+  
+  for (i in seq_len(length(x))) {
+    print(x[[i]][[1]], vp = grid::viewport(layout.pos.row = x[[i]][[2]], 
+                                           layout.pos.col = x[[i]][[3]]))
+  }
+} 
+
+# Function to return sample sizes
+give.n <- function(x){
+  return(c(y = mean(x), label = length(x)))
+}
+
+## Function for adding a regression equation to graphs
+## (Where y= table$column for y in the equation and x= table$column for x)
+lm_eqn <- function(y, x){
+  m <- lm(y ~ x);
+  eq <- substitute(italic(y) == 
+                     a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
+                   list(a = format(coef(m)[1], digits = 2), 
+                        b = format(coef(m)[2], digits = 2), 
+                        r2 = format(summary(m)$r.squared, digits = 3)))
+  as.character(as.expression(eq));                 
+}
+
+## Codes for easy axis labels
+Tc.xlab <- expression(atop(paste("Chamber Temperature (", degree,"C)")))
+Ta.xlab <- expression(atop(paste("Ambient Temperature (", degree,"C)")))
+Tc_min.xlab <- expression(atop(paste("Minimum Chamber Temperature (", degree,"C)")))
+NEE_corrlab <- bquote('Nighttime energy expenditure (kJ/' ~M^(0.67)*')')
+Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
 
 
 #### Additional plots not in the paper ####
@@ -153,13 +200,13 @@ energyM_BBLH <- ggplot(torpor[torpor$Species=="BBLH",], aes(Site_new, NEE_MassCo
 energyM_BBLH
 
 ## Energy vs. hours torpid, species labeled
-energyM_hours <- ggplot(torpor, aes(Hours_torpid2, NEE_MassCorrected)) +  my_theme +
-  geom_point(aes(shape = factor(Species)), size=4) + theme_bw(base_size=30) +
-  scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
-  geom_smooth(method=lm, color="black") +
-  geom_text(x = 5, y = 4.5, label = lm_eqn(torpor$NEE_MassCorrected, torpor$Hours_torpid2), 
+energyM_hours <- ggplot(torpor, aes(Hours_torpid2, NEE_MassCorrected, label=round(savings,2))) +  my_theme +
+  geom_point(aes(shape = factor(Species), col=savings), size=4) + theme_bw(base_size=30) +
+  scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) + scale_color_continuous(low='blue', high='red') +
+  geom_smooth(method=lm, color="black") + geom_text(vjust=--2) +
+  geom_text(x = 5, y = 5.5, label = lm_eqn(torpor$NEE_MassCorrected, torpor$Hours_torpid2), 
             parse=T, size=10) +
-  labs(shape='Species') + scale_color_brewer(palette = "Set1") + theme_bw(base_size=30) +
+  labs(shape='Species') + #scale_color_brewer(palette = "Set1") + theme_bw(base_size=30) +
   ylab(NEE_corrlab) + xlab("Torpor duration")
 energyM_hours
 
