@@ -55,7 +55,7 @@ torpor$Hours_torpid2[is.na(torpor$Hours_torpid2)] <- 0
 torpor$savings <- 100-torpor$Percentage_avg
 
 ## Distribution of savings
-ggplot(torpor, aes(savings2)) + geom_histogram(aes(fill=Temptrop)) + my_theme
+ggplot(torpor, aes(savings)) + geom_histogram(aes(fill=Temptrop)) + my_theme
 
 #### Make new data frames ####
 ## Melt into temperate-tropical format
