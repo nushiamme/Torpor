@@ -54,6 +54,9 @@ torpor$Hours_torpid2[is.na(torpor$Hours_torpid2)] <- 0
 ## Savings column to convert percentage energy expended in torpor relative to normothermy into savings relative to normothermy
 torpor$savings <- 100-torpor$Percentage_avg
 
+## Distribution of savings
+ggplot(torpor, aes(savings)) + geom_histogram(aes(fill=Temptrop)) + my_theme
+
 #### Make new data frames ####
 ## Melt into temperate-tropical format
 m.temptrop <- melt(torpor, id.vars = c("Temptrop", "Species", "Site"), 
