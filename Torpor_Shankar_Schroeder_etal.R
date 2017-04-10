@@ -57,6 +57,8 @@ torpor$savings <- 100-torpor$Percentage_avg
 ## Distribution of savings
 ggplot(torpor, aes(savings)) + geom_histogram(aes(fill=Temptrop)) + my_theme
 
+ggplot(torpor, aes(savings, Hours2)) + geom_point(aes(col=Species), size=5) + my_theme
+
 #### Make new data frames ####
 ## Melt into temperate-tropical format
 m.temptrop <- melt(torpor, id.vars = c("Temptrop", "Species", "Site"), 
