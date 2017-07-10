@@ -1,4 +1,6 @@
 ## Torpor paper, A. Shankar, R. Schroeder et al.
+## Code by: Anusha Shankar, github/nushiamme
+## Contact: anusha.shankar@stonybrook.edu for raw data files
 ## Plots and analyses for paper on hummingbird torpor in Arizona and Ecuador
 
 #### libraries and reading in data ####
@@ -21,43 +23,39 @@ setwd("C:\\Users\\shankar\\Dropbox\\Hummingbird energetics\\Submission_Oct2016")
 #setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Tables_for_paper")
 
 ## Used a European computer last- remove the sep=";" if using a csv format where commas are separators.
-torpor <- read.csv("Torpor_individual_summaries.csv", sep=";")
-freq_sites <- read.csv("Frequency_torpor_sites.csv")
-freq_sp <- read.csv("Frequency_torpor_sp.csv")
+torpor <- read.csv("Torpor_individual_summaries.csv", sep=";") # Torpor summaries per individual
+freq_sites <- read.csv("Frequency_torpor_sites.csv") # Frequency of torpor use per species, organized by site
+freq_sp <- read.csv("Frequency_torpor_sp.csv") # Frequency of torpor use per species, organized by species
 
-torpor$Percentage_avg <- as.numeric(as.character(torpor$Percentage_avg))
+## Make the column for 'proportion of night spent torpid' a numeric column
 torpor$Prop_hours <- as.numeric(as.character(torpor$Prop_hours))
 
 ##### Adding columns #######
-## Adding column dividing NEE by 2/3*Mass to correct for mass with allometric scaling
+## Adding column dividing NEE by 2/3*Mass to correct for mass with allometric scaling - can be changed to test
+# other allometries
 torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
-
-## Adding columns to correct for mass in Avg EE normo, Min EE normo, torpid, etc. 
-torpor$AvgEE_normo_MassCorrected <- torpor$Avg_EE_hourly_normo/(torpor$Mass^(2/3))
-torpor$MinEE_normo_MassCorrected <- as.numeric(torpor$Min_EE_normo)/(torpor$Mass^(2/3))
-torpor$AvgEE_torpid_MassCorrected <- torpor$Avg_EE_hourly_torpid/(torpor$Mass^(2/3))
-torpor$MinEE_torpid_MassCorrected <- as.numeric(torpor$Min_EE_torpid)/(torpor$Mass^(2/3))
 
 # Line to arrange Site facets in sensible order
 torpor$Site_new <- factor(torpor$Site, levels=c('HC','SC','SWRS','MQ','SL'))
 
+## New column for time of entry into torpor, ordered in a chronological way
 torpor$EntryTime_new <- factor(torpor$Time_of_entry, 
                                levels=c('2000', '2100', '2130', '2200', '2230',
                                         '2300', '2400', '100', '130', '200', '330', '500'))
 
 freq_sites$Site_new <- factor(freq_sites$Site, levels=c('HC','SC','SWRS','MQ','SL'))
 
+## Make species a sensible order
+torpor$Species2 <- factor(torpor$Species,
+                          levels = c('BBLH','MAHU','GCB','FBB','TBH', "WNJ"), ordered = T)
+
 ## Create Hours_torpid2 column and change NA's to 0's for lm analyses; keep original Hours_torpid column with NA's
 torpor$Hours_torpid2 <- torpor$Hours_torpid
 torpor$Hours_torpid2[is.na(torpor$Hours_torpid2)] <- 0
 
-## Savings column to convert percentage energy expended in torpor relative to normothermy into savings relative to normothermy
+## Savings column to convert percentage energy expended in torpor relative to normothermy into savings
+# relative to normothermy
 torpor$savings <- 100-torpor$Percentage_avg
-
-## Distribution of savings
-ggplot(torpor, aes(savings)) + geom_histogram(aes(fill=Temptrop)) + my_theme
-
-ggplot(torpor, aes(savings, Hours2)) + geom_point(aes(col=Species), size=5) + my_theme
 
 #### Make new data frames ####
 ## Melt into temperate-tropical format
@@ -82,27 +80,6 @@ nee.agg <- aggregate(torpor$NEE_kJ,
                      FUN="mean", na.rm=T)
 names(nee.agg) <- c("Torpid_not", "Site", "Species", "NEE_kJ")
 nee.agg
-
-## Mass-corrected NEE aggregate
-neet.agg <- aggregate(torpor$NEE_MassCorrected, 
-                      by=list(torpor$Torpid_not, torpor$Site_new, 
-                              torpor$Species), 
-                      FUN="mean", na.rm=T)
-names(neet.agg) <- c("Torpid_not", "Site", "Species", "NEE Mass corrected (kJ/g^(2/3))")
-neet.agg
-
-## Aggregate mass
-mass1.agg <- aggregate(torpor$Mass, 
-                       by=list(torpor$Torpid_not, torpor$Site_new, 
-                               torpor$Species), 
-                       FUN="mean", na.rm=T)
-names(mass1.agg) <- c("Torpid_not", "Site", "Species", "Mass")
-mass1.agg
-
-nee_Mc_agg <- merge(nee.agg, neet.agg,by=c("Torpid_not", "Site", "Species"))
-nee_Mc_agg <- merge(nee_Mc_agg, mass1.agg, by=c("Torpid_not", "Site", "Species"))
-
-write.csv(nee_Mc_agg, "NEE and mass-corrected summary.csv")
 
 ## Summarize hours spent torpid
 hours.agg <- aggregate(torpor$Hours_torpid, 
@@ -200,17 +177,14 @@ lm_eqn <- function(y, x){
   as.character(as.expression(eq));                 
 }
 
-## Codes for easy axis labels
+## Code for easy axis labels
 Tc.xlab <- expression(atop(paste("Chamber Temperature (", degree,"C)")))
 Ta.xlab <- expression(atop(paste("Ambient Temperature (", degree,"C)")))
 Tc_min.xlab <- expression(atop(paste("Minimum Chamber Temperature (", degree,"C)")))
 NEE_corrlab <- bquote('Nighttime energy expenditure (kJ/' ~M^(0.67)*')')
 Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
 
-#### Depth plots #####
-torpor$Species2 <- factor(torpor$Species,
-                          levels = c('BBLH','MAHU','GCB','FBB','TBH', "WNJ"), ordered = T)
-
+#### Depth of entry into torpor plots #####
 # Full site names for plots included in paper
 torpor$Site_full <- torpor$Site_new
 levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maqui", "Santa Lucia")
@@ -224,7 +198,6 @@ savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species2, savings)) 
 savings_plot
 
 #### Comparing temperate and tropical species ####
-### Each of the 5 facets for Figure 2 
 ## Frequency of torpor use
 freqplot <- ggplot(freq_table, aes(Temptrop, prop)) + geom_boxplot(fill= "light grey") + 
   ylab("Frequency of torpor use (%)") +  xlab("Region") + my_theme2 + 
@@ -267,7 +240,7 @@ temptrop_savings <- ggplot(m.temptrop[m.temptrop$variable=="Percentage_avg",],
   theme(axis.title.x = element_blank()) + ggtitle("e.")
 temptrop_savings
 
-## Compiling Figure 2
+## Compiling Temperate tropical measures, comparison
 grid.arrange(freqplot, energyM_temptrop, hours_temptrop, prop_hours_plot, temptrop_savings, 
              nrow=3, ncol=2, bottom = textGrob("Region", gp=gpar(fontsize=25), vjust=-0.5))
 
