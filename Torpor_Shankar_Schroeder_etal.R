@@ -1,8 +1,8 @@
 ##Code for paper titled:
 #"Hypothermic hummingbirds- energy savings in temperate and tropical sites "
-## by A. Shankar, R. Schroeder et al.
+## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, Susan M Wethington, Catherine H Graham, Donald R Powers
 ## Code by: Anusha Shankar, github/nushiamme
-## Contact: anusha.shankar@stonybrook.edu for raw data files
+## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for raw data files
 ## Plots and analyses for paper on hummingbird torpor in Arizona and Ecuador
 
 #### libraries and reading in data ####

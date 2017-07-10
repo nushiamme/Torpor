@@ -1,8 +1,8 @@
 ## Code for MCMCglmm models for paper titled: 
 #"Hypothermic hummingbirds- energy savings in temperate and tropical sites "
-## A Shankar, RJ SChroeder et al.
+## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, Susan M Wethington, Catherine H Graham, Donald R Powers
 ## Code by: Anusha Shankar, github/nushiamme
-## Contact: anusha.shankar@stonybrook.edu for raw data files
+## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for raw data files
 ## Thank you Liliana Davalos for your help!
 ## Started Nov 23, 2016
 
@@ -79,7 +79,7 @@ mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                    verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mfreq1)
-plot(mfreq1)
+plot(mfreq1) ## Figure 2
 
 ## Without mass-corrections - don't use - exploratory
 m2<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
@@ -97,7 +97,7 @@ m3b<-MCMCglmm(NEE_MassCorrected~Hours2, random=~Species,
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(m3b)
-plot(m3b)
+plot(m3b) ## Figure 5
 
 ## Of min chamber temperature
 m3c<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species, 

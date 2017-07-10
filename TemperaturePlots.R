@@ -1,9 +1,10 @@
 ## Analyzing and plotting ambient and chamber temperature data for torpor paper
 ## Script by Anusha Shankar
-## Paper authors: Anusha Shankar*, Rebecca Schroeder*, Catherine Graham, Don Powers
+## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, Susan M Wethington, Catherine H Graham, Donald R Powers
 ## Script started on: Sept 24, 2016
-## If you know how to make the horus into ordered factors that are easy to plot without the messiness below, please email me
-## at nushiamme<at>gmail<dot>com
+## Thanks
+## If you know how to make the hours into ordered factors that are easy to plot without the messiness below, 
+## please email anusha<dot>shankar<at>stonybrook<dot>edu
 # * = equal authors
 
 require(ggplot2) 
