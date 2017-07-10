@@ -11,12 +11,6 @@ library(reshape)
 library(gridExtra)
 library(grid)
 library(wq)
-library(gam)
-library(foreign)
-library(MASS)
-library(ggbiplot)
-library(dplyr)
-library(rgl)
 
 ## setwd and read in file
 #wdCH
