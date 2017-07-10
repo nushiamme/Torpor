@@ -1,32 +1,44 @@
-## Thank you Liliana Davalos!
+## Code for MCMCglmm models for paper titled: 
+#"Hypothermic hummingbirds- energy savings in temperate and tropical sites "
+## A Shankar, RJ SChroeder et al.
+## Code by: Anusha Shankar, github/nushiamme
+## Contact: anusha.shankar@stonybrook.edu for raw data files
+## Thank you Liliana Davalos for your help!
 ## Started Nov 23, 2016
 
-## Read in packages
 library(MCMCglmm)
 library(nlme)
 library(ape)
-library(geiger)
+library(geiger) # for treedata() function
 library(caper)
+library(lattice) # for xyplot function
 
-## Set working directory
-setwd("C:\\Users\\shankar\\Dropbox\\Hummingbird energetics\\Submission_Oct2016")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Oct2016")
 
 torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual
+tor_freq <- read.csv("Torpor_freq.csv")
+
+#### Adding columns ####
 torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
-#Table with data for rate of occurrence of torpor per species; each row is a species
-freq_sp <- read.csv("Frequency_torpor_sp.csv") 
-
-mass.agg <- aggregate(torpor$Mass,   #Get mean mass per species
-                      by=list(torpor$Species), 
-                      FUN="mean", na.rm=T)
-names(mass.agg) <- c("Species", "Mass")
-mass.agg
-freq_sp$mass <- mass.agg$Mass # Add mass data to freq_table
-
 #First converting NA's in Hours_torpid into 0's.
 torpor$Hours2 <- torpor$Hours_torpid
 torpor$Hours2[is.na(torpor$Hours2==TRUE)] <- 0
+#Making a column for energy savings as a proportion of energy expenditure (normothermic-torpor)/torpor
+torpor$savings <- 100-torpor$Percentage_avg
+torpor$savings2 <- 100-torpor$Percentage_avg
+torpor$savings2[is.na(torpor$savings2)] <- 0
+#torpor$savings2 <- scale(torpor$savings2, center=T, scale=F)[,1] # to center savings on zero
 
+## To make column where savings is a binned, ordinal value.
+torpor$savings_quantile <- with(torpor, factor(
+  findInterval(savings2, c(-Inf,
+                       unique(quantile(savings2, probs=seq(0,1, by=0.25))), Inf)), 
+  labels=c("1","2","3","4")
+))
+torpor$savings_quantile <- as.numeric(torpor$savings_quantile)
+torpor$savings_quantile2 <- as.factor(torpor$savings_quantile)
+
+#### Phylogenetic components ####
 tree<-read.tree("hum294.tre")
 #show tip names
 tree$tip.label
@@ -48,20 +60,7 @@ rownames(tips)<-tips$tips
 tre1<-treedata(tree, tips)$phy
 plot(tre1)
 
-#prepare data for pgls using pruned data, data you want to run and the column that matches the two 
-#in this case, "Species"
-data<-comparative.data(tre1,freq_sp,"Species")
-#run the phyogenetic model
-#First testing the effect of mass on rate of occurrence of torpor; rate of occurence is the percentage of 
-#individuals of the species that used torpor; first using Brownian motion
-m0<-pgls(Rate_occurrence ~ mass,data)
-#now using Pagel's lambda tree transform
-m1<-pgls(Rate_occurrence ~ mass,data, lambda="ML")
-#extract the AIC to compare models using these data. m1 is better
-AIC(m0)
-AIC(m1)
-summary(m1)
-
+#### Models ####
 ## Now, to run Bayesian models with repeated measures per species (i.e. multiple individuals per species), 
 #we setup an inverse matrix and set up a prior
 #Using a Bayesian rather than a maximum likelihood model because with an ML model we could include 
@@ -70,17 +69,76 @@ summary(m1)
 #within the phylogeny, we need turn the phylogeny into an inverse matrix
 inv.phylo<-inverseA(tre1,nodes="TIPS",scale=TRUE)
 #set up a prior for a phylogenetic mixed model
-prior<-list(G=list(G1=list(V=1,nu=0.02)),R=list(V=1,nu=0.02))
+#changed nu from 0.002 to 1 for both G and R on May 22
+prior<-list(G=list(G1=list(V=1,nu=1)),R=list(V=1,nu=1)) 
 #run the hierarchical phyogenetic model, the name of the species (repeated across rows of observations) 
 
-## Without mass-corrections - doesn't make sense to do this comparison, so don't use. Just to show possible model.
+## Frequency converted into bernoulli individual-level torpor-not
+## This is the model for frequency
+mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
+                   ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+                   verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(mfreq1)
+plot(mfreq1)
+
+## Without mass-corrections - don't use - exploratory
 m2<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
              prior=prior, data=torpor, verbose=FALSE)
 summary(m2)
 
+## Mass-corrected NEE as a function of Mass
+m3a<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species, 
+              ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+              verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m3a)
+
+## As a function of duration of torpor
+m3b<-MCMCglmm(NEE_MassCorrected~Hours2, random=~Species, 
+              ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+              verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m3b)
+plot(m3b)
+
+## Of min chamber temperature
+m3c<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species, 
+              ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+              verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m3c)
+
+## Duration + min chamber temperature
+m3d<-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species, 
+              ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+              verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m3d)
+
+## Used this model up to April 2017
 m3<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C, random=~Species, 
-             ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, verbose=FALSE)
+             ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+             verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(m3)
+
+## As a function of hourly energy savings
+m4a <- MCMCglmm(NEE_MassCorrected~savings_quantile, random=~Species, 
+                ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+                verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m4a)
+
+## Duration + min temp + savings
+m4b <- MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C+savings_quantile, random=~Species, 
+                ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+                verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m4b)
+
+### This is the full model
+m5<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile, 
+             random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
+             prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m5)
+par(mar = rep(2, 4))
+plot(m5)
+
 ## Without any phylogenetic corrections- shows that results have an inflated significance when 
 #phylo corrections are not done
-m4<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, data=torpor)
+m6 <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings, data=torpor[torpor$Hours2!=0,])
+summary(m6)
+

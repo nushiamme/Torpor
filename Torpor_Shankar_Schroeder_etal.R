@@ -1,4 +1,6 @@
-## Torpor paper, A. Shankar, R. Schroeder et al.
+##Code for paper titled:
+#"Hypothermic hummingbirds- energy savings in temperate and tropical sites "
+## by A. Shankar, R. Schroeder et al.
 ## Code by: Anusha Shankar, github/nushiamme
 ## Contact: anusha.shankar@stonybrook.edu for raw data files
 ## Plots and analyses for paper on hummingbird torpor in Arizona and Ecuador
