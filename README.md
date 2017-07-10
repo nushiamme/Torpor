@@ -1,6 +1,6 @@
 README last updated: July 10, 2017
 
-Location: Maquipucuna and Santa Lucia Ecoreserves, Pichincha Ecuador; Harshaw Creek, Sonoita Creek in Patagonia, Arizona, USA; and Southwestern Research Station, Chiracahuas, Arizona, USA
+Location: Maquipucuna and Santa Lucia Ecoreserves, Pichincha Ecuador; Harshaw Creek, Sonoita Creek in Patagonia, Arizona, USA; and Southwestern Research Station, Chiricahuas, Arizona, USA
 
 Field Data: Collected by Shankar A, Powers DR, Schroeder RJ, Canepa JR, Luke Andrew, Sara Nutter, Noemi Camacho, Katie Langland ; Temperature data: Ben Weinstein
 
