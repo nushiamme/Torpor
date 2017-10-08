@@ -1,5 +1,5 @@
 ##Code for paper titled:
-#"Hypothermic hummingbirds- energy savings in temperate and tropical sites "
+#"Torpid hummingbirds- energy savings in temperate and tropical sites"
 ## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, Susan M Wethington, Catherine H Graham, Donald R Powers
 ## Code by: Anusha Shankar, github/nushiamme
 ## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for raw data files
@@ -13,13 +13,10 @@ library(grid)
 library(wq)
 
 ## setwd and read in file
-#wdCH
-setwd("C:\\Users\\shankar\\Dropbox\\Hummingbird energetics\\Submission_Oct2016")
-#wdMS
-#setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Tables_for_paper")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data")
 
-## Used a European computer last- remove the sep=";" if using a csv format where commas are separators.
-torpor <- read.csv("Torpor_individual_summaries.csv", sep=";") # Torpor summaries per individual
+## Use sep=";" if using a csv format from Europe.
+torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
 freq_sites <- read.csv("Frequency_torpor_sites.csv") # Frequency of torpor use per species, organized by site
 freq_sp <- read.csv("Frequency_torpor_sp.csv") # Frequency of torpor use per species, organized by species
 
@@ -54,19 +51,16 @@ torpor$Hours_torpid2[is.na(torpor$Hours_torpid2)] <- 0
 torpor$savings <- 100-torpor$Percentage_avg
 
 #### Make new data frames ####
-## Melt into temperate-tropical format
-m.temptrop <- melt(torpor, id.vars = c("Temptrop", "Species", "Site"), 
-                   measure.vars =  c("Hours_torpid", "Prop_hours", "NEE_kJ", "Percentage_avg",
-                                     "NEE_MassCorrected", "Mass"))
-
 ## Make dataframe to check site-wise frequency of torpor
 rate_site <- data.frame(table(torpor$Site,torpor$Torpid_not))
 names(rate_site) <- c("Site", "Torpid_not", "N")
 
-## Subset just BBLH data
+## Subset just BBLH data (for which we have enough data at multiple sites 
+#to do more in-depth analyses)
 BBLH_torpor <- subset(torpor, Species=="BBLH")
 
-## Subset just GCB data
+## Subset just GCB data (for which we have enough data at multiple sites
+#to do more in-depth analyses)
 GCB_torpor <- subset(torpor, Species=="GCB")
 
 ## Make table to summarize nighttime energy expenditure
@@ -75,7 +69,7 @@ nee.agg <- aggregate(torpor$NEE_kJ,
                              torpor$Species), 
                      FUN="mean", na.rm=T)
 names(nee.agg) <- c("Torpid_not", "Site", "Species", "NEE_kJ")
-nee.agg
+#nee.agg #to check
 
 ## Summarize hours spent torpid
 hours.agg <- aggregate(torpor$Hours_torpid, 
@@ -83,7 +77,7 @@ hours.agg <- aggregate(torpor$Hours_torpid,
                                torpor$Species), 
                        FUN="mean", na.rm=T)
 names(hours.agg) <- c("Site", "Species", "Mean torpor duration (hours)")
-hours.agg
+#hours.agg #to check
 
 ## Whole animal O2 consumption summary
 o2.agg <- aggregate(torpor$O2_ml_min, 
@@ -91,7 +85,7 @@ o2.agg <- aggregate(torpor$O2_ml_min,
                             torpor$Species), 
                     FUN="mean", na.rm=T)
 names(o2.agg) <- c("Torpid_not", "Site", "Species", "Oxygen_ml_min")
-o2.agg
+#o2.agg #to check
 
 ## Make table to summarize savings
 savings.agg <- aggregate(torpor$savings, 
@@ -223,10 +217,17 @@ hours_temptrop
 ## Plot for proportion hours spent torpid
 prop_hours_plot <- ggplot(na.omit(torpor[,c("Species","Hours_torpid","Site_new","Temptrop","Prop_hours")]), 
                           aes(Temptrop, as.numeric(as.character((Prop_hours))))) + 
-  geom_boxplot(fill= "light grey") + my_theme2 + ylab("Percentage of hours spent torpid") + xlab("Region") +
-  stat_summary(fun.data = give.n, geom = "text", size=5, vjust=-1) +
+  geom_boxplot(fill= "light grey") + my_theme2 + ylab("Percentage of hours spent torpid") + 
+  xlab("Region") + stat_summary(fun.data = give.n, geom = "text", size=5, vjust=-1) +
   theme(axis.title.x = element_blank()) + ggtitle("d.")
 prop_hours_plot
+
+## Duration vs. time of entry
+dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) + 
+  geom_point(size=2) + my_theme2 + xlab("Hour of entry") + ylab("Duration of torpor (hours)") +
+  geom_smooth(method=lm, size=1, col="black") +
+  geom_text(x = 5.5, y = 6, label = lm_eqn(torpor$Hours_torpid, torpor$EntryTime_numeric), parse=T, size=5)
+dur_entrytime
 
 ## Savings temptrop
 temptrop_savings <- ggplot(m.temptrop[m.temptrop$variable=="Percentage_avg",], 
