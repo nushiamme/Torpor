@@ -187,7 +187,7 @@ savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species2, savings)) 
   stat_summary(fun.data = give.n, geom = "text", vjust=-1, size=10)
 savings_plot
 
-#### Comparing temperate and tropical species ####
+#### Exploratory plots ####
 ## Frequency of torpor use
 freqplot <- ggplot(freq_table, aes(Temptrop, prop)) + geom_boxplot(fill= "light grey") + 
   ylab("Frequency of torpor use (%)") +  xlab("Region") + my_theme2 + 
@@ -229,6 +229,36 @@ dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) +
   geom_text(x = 5.5, y = 6, label = lm_eqn(torpor$Hours_torpid, torpor$EntryTime_numeric), parse=T, size=5)
 dur_entrytime
 
+rewarm.agg <- aggregate(torpor$Rewarming_VO2_rate, by=list(torpor$Species), 
+                        FUN='mean', na.rm=T)
+
+mass.agg2 <- aggregate(torpor$Mass, by=list(torpor$Species), 
+                       FUN='mean', na.rm=T)
+
+rewarm.agg <- merge(rewarm.agg, mass.agg2, by=c('Group.1'))
+names(rewarm.agg) <- c("Species", "Rewarming_VO2_rate", "Mass")
+          
+rewarming <- ggplot(torpor, aes(Mass, Rewarming_VO2_rate)) + 
+  my_theme2 + geom_point(aes(col=Species), size=2) + xlab("Mass") +
+  #ylab(bquote('Rate of rewarming ('~VO[2]~ ml/~min^2*')')) +
+  scale_color_brewer(palette='Set1') +
+  geom_smooth(method=lm, size=1, col="black") +
+  geom_text(x = 5, y = 0.07,
+            label = lm_eqn(log(torpor$Rewarming_VO2_rate), torpor$Mass), parse=T, size=5)
+rewarming
+
+rewarming_sp <- ggplot(rewarm.agg, aes(Mass, Rewarming_VO2_rate)) + 
+  my_theme2 + geom_point(aes(col=Species), size=2) + xlab("Mass") +
+  #ylab(bquote('Rate of rewarming ('~VO[2]~ ml/~min^2*')')) +
+  scale_color_brewer(palette='Set1') +
+  geom_smooth(method=lm, size=1, col="black")
+rewarming_sp
+
+
+rewarm_lm <- lm(log(Rewarming_VO2_rate) ~ Mass, data = torpor)
+summary(rewarm_lm)
+
+Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
 ## Savings temptrop
 temptrop_savings <- ggplot(m.temptrop[m.temptrop$variable=="Percentage_avg",], 
                            aes(Temptrop, 100-(value))) + 

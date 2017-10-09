@@ -13,7 +13,7 @@ library(geiger) # for treedata() function
 library(caper)
 library(lattice) # for xyplot function
 
-setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Oct2016")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data\\")
 
 torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual
 tor_freq <- read.csv("Torpor_freq.csv")
@@ -43,6 +43,7 @@ tree<-read.tree("hum294.tre")
 #show tip names
 tree$tip.label
 #replace tip names with those in torpor database
+## If using an updated tree check tree names again
 tree$tip.label[1]<-"WNJ"
 tree$tip.label[12]<-"TBH"
 tree$tip.label[92]<-"EMB"
@@ -69,7 +70,7 @@ plot(tre1)
 #within the phylogeny, we need turn the phylogeny into an inverse matrix
 inv.phylo<-inverseA(tre1,nodes="TIPS",scale=TRUE)
 #set up a prior for a phylogenetic mixed model
-#changed nu from 0.002 to 1 for both G and R on May 22
+#changed nu from 0.002 to 1 for both G and R on May 22, 2017
 prior<-list(G=list(G1=list(V=1,nu=1)),R=list(V=1,nu=1)) 
 #run the hierarchical phyogenetic model, the name of the species (repeated across rows of observations) 
 
@@ -80,6 +81,11 @@ mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
                    verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mfreq1)
 plot(mfreq1) ## Figure 2
+
+mrewarm <- MCMCglmm(log(Rewarming_VO2_rate)~Mass, random=~Species, family='gaussian',
+                    ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
+                    data=torpor[torpor$Torpid_not=="T",],
+                    verbose=F,nitt=1e5, thin=1000)
 
 ## Without mass-corrections - don't use - exploratory
 m2<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
