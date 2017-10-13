@@ -38,7 +38,7 @@ torpor$EntryTime_new <- factor(torpor$Time_of_entry,
 
 freq_sites$Site_new <- factor(freq_sites$Site, levels=c('HC','SC','SWRS','MQ','SL'))
 
-## Make species a sensible order
+## Make species a sensible order, for just species that used torpor
 torpor$Species2 <- factor(torpor$Species,
                           levels = c('BBLH','MAHU','GCB','FBB','TBH', "WNJ"), ordered = T)
 
@@ -127,6 +127,16 @@ levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_torpid_Mas
 
 m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels = 
                                    rev(levels(m_GCB_tor_nor$variable)))
+
+## New aggregated data frame for rewarming
+rewarm.agg <- aggregate(torpor$Rewarming_VO2_rate, by=list(torpor$Species), 
+                        FUN='mean', na.rm=T)
+
+mass.agg2 <- aggregate(torpor$Mass, by=list(torpor$Species), 
+                       FUN='mean', na.rm=T)
+
+rewarm.agg <- merge(rewarm.agg, mass.agg2, by=c('Group.1'))
+names(rewarm.agg) <- c("Species", "Rewarming_VO2_rate", "Mass")
 
 #### General functions ####
 ## Saving standard theme  
@@ -229,15 +239,6 @@ dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) +
   geom_text(x = 5.5, y = 6, label = lm_eqn(torpor$Hours_torpid, torpor$EntryTime_numeric), parse=T, size=5)
 dur_entrytime
 
-rewarm.agg <- aggregate(torpor$Rewarming_VO2_rate, by=list(torpor$Species), 
-                        FUN='mean', na.rm=T)
-
-mass.agg2 <- aggregate(torpor$Mass, by=list(torpor$Species), 
-                       FUN='mean', na.rm=T)
-
-rewarm.agg <- merge(rewarm.agg, mass.agg2, by=c('Group.1'))
-names(rewarm.agg) <- c("Species", "Rewarming_VO2_rate", "Mass")
-          
 rewarming <- ggplot(torpor, aes(Mass, Rewarming_VO2_rate)) + 
   my_theme2 + geom_point(aes(col=Species), size=2) + xlab("Mass") +
   #ylab(bquote('Rate of rewarming ('~VO[2]~ ml/~min^2*')')) +
@@ -254,8 +255,17 @@ rewarming_sp <- ggplot(rewarm.agg, aes(Mass, Rewarming_VO2_rate)) +
   geom_smooth(method=lm, size=1, col="black")
 rewarming_sp
 
+rewarming_kJ <- ggplot(torpor, aes(Mass, kJ_rewarming_BeforeOvershoot)) + 
+  my_theme2 + geom_point(aes(col=Species), size=2) + xlab("Mass") +
+  #ylab(bquote('Rate of rewarming ('~VO[2]~ ml/~min^2*')')) +
+  scale_color_brewer(palette='Set1') #+
+  #geom_smooth(method=lm, size=1, col="black") +
+  #geom_text(x = 5, y = 0.07,
+            #label = lm_eqn(log(torpor$Rewarming_VO2_rate), torpor$Mass), parse=T, size=5)
+rewarming_kJ
 
-rewarm_lm <- lm(log(Rewarming_VO2_rate) ~ Mass, data = torpor)
+## Trying out a linear model with rewarming and mass
+rewarm_lm <- lm(log(kJ_rewarming_BeforeOvershoot) ~ Mass, data = torpor)
 summary(rewarm_lm)
 
 Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
