@@ -82,10 +82,12 @@ mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
 summary(mfreq1)
 plot(mfreq1) ## Figure 2
 
-mrewarm <- MCMCglmm(log(Rewarming_VO2_rate)~Mass, random=~Species, family='gaussian',
+mrewarm <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass+Rewarming_Tc, random=~Species, family='gaussian',
                     ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                     data=torpor[torpor$Torpid_not=="T",],
-                    verbose=F,nitt=1e5, thin=1000)
+                    verbose=F,nitt=1e6, thin=1000)
+summary(mrewarm)
+plot(mrewarm)
 
 ## Without mass-corrections - don't use - exploratory
 m2<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
