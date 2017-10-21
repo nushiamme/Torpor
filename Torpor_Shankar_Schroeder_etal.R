@@ -11,6 +11,7 @@ library(reshape)
 library(gridExtra)
 library(grid)
 library(wq)
+library(RColorBrewer)
 
 ## setwd and read in file
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data")
@@ -129,14 +130,14 @@ m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels =
                                    rev(levels(m_GCB_tor_nor$variable)))
 
 ## New aggregated data frame for rewarming
-rewarm.agg <- aggregate(torpor$Rewarming_VO2_rate, by=list(torpor$Species), 
+rewarm.agg <- aggregate(torpor$Rewarming_O2_rate, by=list(torpor$Species), 
                         FUN='mean', na.rm=T)
 
 mass.agg2 <- aggregate(torpor$Mass, by=list(torpor$Species), 
                        FUN='mean', na.rm=T)
 
 rewarm.agg <- merge(rewarm.agg, mass.agg2, by=c('Group.1'))
-names(rewarm.agg) <- c("Species", "Rewarming_VO2_rate", "Mass")
+names(rewarm.agg) <- c("Species", "Rewarming_O2_rate", "Mass")
 
 #### General functions ####
 ## Saving standard theme  
@@ -239,16 +240,16 @@ dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) +
   geom_text(x = 5.5, y = 6, label = lm_eqn(torpor$Hours_torpid, torpor$EntryTime_numeric), parse=T, size=5)
 dur_entrytime
 
-rewarming <- ggplot(torpor, aes(Mass, Rewarming_VO2_rate)) + 
+rewarming <- ggplot(torpor, aes(Mass, Rewarming_O2_rate)) + 
   my_theme2 + geom_point(aes(col=Species), size=2) + xlab("Mass") +
   #ylab(bquote('Rate of rewarming ('~VO[2]~ ml/~min^2*')')) +
   scale_color_brewer(palette='Set1') +
   geom_smooth(method=lm, size=1, col="black") +
   geom_text(x = 5, y = 0.07,
-            label = lm_eqn(log(torpor$Rewarming_VO2_rate), torpor$Mass), parse=T, size=5)
+            label = lm_eqn(log(torpor$Rewarming_O2_rate), torpor$Mass), parse=T, size=5)
 rewarming
 
-rewarming_sp <- ggplot(rewarm.agg, aes(Mass, Rewarming_VO2_rate)) + 
+rewarming_sp <- ggplot(rewarm.agg, aes(Mass, Rewarming_O2_rate)) + 
   my_theme2 + geom_point(aes(col=Species), size=2) + xlab("Mass") +
   #ylab(bquote('Rate of rewarming ('~VO[2]~ ml/~min^2*')')) +
   scale_color_brewer(palette='Set1') +
@@ -256,17 +257,42 @@ rewarming_sp <- ggplot(rewarm.agg, aes(Mass, Rewarming_VO2_rate)) +
 rewarming_sp
 
 rewarming_kJ <- ggplot(torpor, aes(Mass, kJ_rewarming_BeforeOvershoot)) + 
-  my_theme2 + geom_point(aes(col=Species), size=2) + xlab("Mass") +
+  my_theme2 + geom_point(aes(col=Species), size=3) + xlab("Mass") + ylab("Rewarming (kJ)") +
   #ylab(bquote('Rate of rewarming ('~VO[2]~ ml/~min^2*')')) +
   scale_color_brewer(palette='Set1') #+
-  #geom_smooth(method=lm, size=1, col="black") +
+  #geom_smooth(method=lm, size=1, col="black") #+
   #geom_text(x = 5, y = 0.07,
             #label = lm_eqn(log(torpor$Rewarming_VO2_rate), torpor$Mass), parse=T, size=5)
 rewarming_kJ
 
-## Trying out a linear model with rewarming and mass
-rewarm_lm <- lm(log(kJ_rewarming_BeforeOvershoot) ~ Mass, data = torpor)
-summary(rewarm_lm)
+bluecols <- brewer.pal(9, 'Blues')
+newcol <- colorRampPalette(bluecols)
+ncols <- 42
+bluecols2 <- newcol(ncols)
+
+rewarming_NEE <- ggplot(torpor, aes(Mass, NEE_without_rewarming_kJ)) + 
+  my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, col=bluecols2) +
+  geom_point(aes(Mass, NEE_kJ), col='black')  +
+  geom_segment(aes(x=Mass,y=NEE_kJ,xend=Mass,yend=NEE_without_rewarming_kJ, col=Rewarming_Tc),
+               col = bluecols2, 
+               arrow = arrow(length = unit(0.01, "npc"),type = "closed"), alpha=0.5) +
+  xlab("Mass") + ylab("Nighttime energy expenditure (kJ)") 
+rewarming_NEE
+
+rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_without_rewarming_kJ)) + 
+  my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
+  scale_colour_gradient(low="blue", high="red", name="Chamber \n temperature") +
+  geom_point(aes(Mass, NEE_kJ), col='black')  +
+  geom_segment(aes(x=Mass,y=NEE_kJ,xend=Mass,yend=NEE_without_rewarming_kJ, col=Rewarming_Tc),
+               arrow = arrow(length = unit(0.01, "npc"),type = "closed"), alpha=0.5) +
+  xlab("Mass") + ylab("Nighttime energy expenditure (kJ)") 
+rewarming_NEE
+
+rewarming_NEE_Tc <- ggplot(torpor[torpor$Torpid_not=="T",], 
+                           aes(Rewarming_Tc, (NEE_kJ-NEE_without_rewarming_kJ))) + 
+  my_theme2 + geom_point() +
+  xlab(Tc.xlab) + ylab("Rewarming costs (kJ)")
+rewarming_NEE_Tc
 
 Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
 ## Savings temptrop

@@ -82,7 +82,9 @@ mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
 summary(mfreq1)
 plot(mfreq1) ## Figure 2
 
-mrewarm <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass+Rewarming_Tc, random=~Species, family='gaussian',
+torpor$rewarmkJ_MassCorrected <- (torpor$kJ_rewarming_BeforeOvershoot/(torpor$Mass^(2/3)))
+mrewarm <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
+                    random=~Species, family='gaussian',
                     ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                     data=torpor[torpor$Torpid_not=="T",],
                     verbose=F,nitt=1e6, thin=1000)
@@ -144,6 +146,7 @@ m5<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile,
 summary(m5)
 par(mar = rep(2, 4))
 plot(m5)
+autocorr(m5) #To check how autocorrelated the variables are
 
 ## Without any phylogenetic corrections- shows that results have an inflated significance when 
 #phylo corrections are not done
