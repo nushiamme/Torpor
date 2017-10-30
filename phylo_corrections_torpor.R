@@ -38,10 +38,14 @@ torpor$savings_quantile <- with(torpor, factor(
 torpor$savings_quantile <- as.numeric(torpor$savings_quantile)
 torpor$savings_quantile2 <- as.factor(torpor$savings_quantile)
 
+## Rewarming kJ column - remove NA's
+torpor$kJ_rewarming2 <- torpor$kJ_rewarming_BeforeOvershoot
+torpor$kJ_rewarming2[is.na(torpor$kJ_rewarming2==TRUE)] <- 0
+
 #### Phylogenetic components ####
 tree<-read.tree("hum294.tre")
 #show tip names
-tree$tip.label
+#tree$tip.label
 #replace tip names with those in torpor database
 ## If using an updated tree check tree names again
 tree$tip.label[1]<-"WNJ"
@@ -59,7 +63,8 @@ rownames(tips)<-tips$tips
 
 #match tree to data, prune tree, species names should be in rownnames of "data" 
 tre1<-treedata(tree, tips)$phy
-plot(tre1)
+#To check that the reationships between species in the trimmed tree look right
+plot(tre1) 
 
 #### Models ####
 ## Now, to run Bayesian models with repeated measures per species (i.e. multiple individuals per species), 
@@ -82,14 +87,24 @@ mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
 summary(mfreq1)
 plot(mfreq1) ## Figure 2
 
-torpor$rewarmkJ_MassCorrected <- (torpor$kJ_rewarming_BeforeOvershoot/(torpor$Mass^(2/3)))
-mrewarm <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
+mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
                     random=~Species, family='gaussian',
                     ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                     data=torpor[torpor$Torpid_not=="T",],
-                    verbose=F,nitt=1e6, thin=1000)
+                    verbose=F,nitt=5e6, thin=1000)
 summary(mrewarm)
 plot(mrewarm)
+
+mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass+Rewarming_Tc, 
+                       random=~Species, family='gaussian',
+                       ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
+                       data=torpor[torpor$Torpid_not=="T",],
+                       verbose=F,nitt=5e6, thin=1000)
+summary(mrewarm_tc)
+par(mar = rep(2, 4))
+plot(mrewarm_tc)
+
+autocorr(mrewarm_tc)
 
 ## Without mass-corrections - don't use - exploratory
 m2<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
@@ -120,6 +135,8 @@ m3d<-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species,
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(m3d)
+par(mar = rep(2, 4))
+plot(m3d)
 
 ## Used this model up to April 2017
 m3<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C, random=~Species, 
@@ -139,13 +156,23 @@ m4b <- MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C+savings_quantile, random=~Spec
                 verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(m4b)
 
-### This is the full model
-m5<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile, 
+## This was the full model used until July 2017
+m5<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile,
              random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
              prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(m5)
 par(mar = rep(2, 4))
 plot(m5)
+autocorr(m5) #To check how autocorrelated the variables are
+
+### Full model including rewarming, Oct 2017
+m6<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile+
+               kJ_rewarming2, 
+             random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
+             prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(m6)
+par(mar = rep(2, 4))
+plot(m6)
 autocorr(m5) #To check how autocorrelated the variables are
 
 ## Without any phylogenetic corrections- shows that results have an inflated significance when 
