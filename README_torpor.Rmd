@@ -1,0 +1,32 @@
+---
+title: "README for torpor paper"
+output: html_document
+---
+
+For paper titled:
+"Torpid hummingbirds- energy savings in temperate and tropical sites"
+
+Paper authors: Anusha Shankar\*, Rebecca J Schroeder\*, Susan M Wethington, Catherine H Graham, Donald R Powers
+
+\*Equal authors
+
+Code by: Anusha Shankar, github/nushiamme
+
+Contact: anusha.shankar\@stonybrook.edu for questions about code
+
+The code is organized by data type into 3 scripts, for 1. respirometry plots, 2. temperature plots, and 3. phylogenetic corrections and MCMCglmm models. Figures not listed here were conceptual figures made in powerpoint.
+
+* *Torpor_respirometry_plots.R* - Contains code for 
+    + Figure 3: VO2 for broad-billed hummingbirds showing inflection point at 14-15 degC
+    + Supplementary Figure S5: Duration of torpor per individual per night, as a function of the hour of entry
+    + Supplementary Figure S6: Average hourly torpid energy savings relative to normothermy
+    + Supplementary Figure S7: Average mass-corrected energy expenditure as a function of minimum hourly chamber temperature
+    + Supplementary Figure S9: Total nighttime energy expenditure including rewarming (small black dots), and excluding rewarming (coloured dots), as a function of individual mass
+
+* *Torpor_temperature_plots.R* - Contains code for
+    + Figure 2: Chamber Temp plots by hour, per site
+    + Electronic supplementary material, Figure S3: Ambient temp plots by hour, per site
+    
+* *Torpor_phylo_MCMCglmm_models.R* - Contains code for all the MCMCglmm models, and the following plots
+    + 
+    
