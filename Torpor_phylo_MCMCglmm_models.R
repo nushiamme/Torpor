@@ -3,26 +3,27 @@
 ## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, 
 # Susan M Wethington, Catherine H Graham, Donald R Powers
 ## *Equal authors
-## Code by: Anusha Shankar, github/nushiamme
-## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
-## Thank you Liliana Davalos for help with this!
+## Code by: Anusha Shankar, github/nushiamme; 
+# contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
+## Thank you Liliana Davalos for help with these models!
 ## Started Nov 23, 2016
-## MCMCglmm models, accounting for both the phylogenetic structure and the repeated-measures per
-# species
+## MCMCglmm models, accounting for both the phylogenetic structure and 
+# the repeated-measures per species
 
 ### Contents
 ## Setup, read files in, format data
 ## Table 3 and Supp Figure S4: Model for Probability of entry into torpor ~ mass
-## NEE models; summarized in Supp Table S2
-## Supp Figure S4: Plot of best model of nighttime energy expenditure 
+## Supp Table S2: Summary of multiple NEE models
+## Supp Figure S8: Plot of best model of nighttime energy expenditure 
 # (i.e. Mass-corrected NEE ~ torpor duration + min chamber temperature)
+## Table 5, Supp Table S3, Supp Figure S10: Rewarming analyses
 
 library(MCMCglmm)
 library(nlme)
 library(ape)
 library(geiger) # for treedata() function
 library(caper)
-library(coda)
+library(coda) # only for autocorr function
 
 #### Setup ####
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data\\")

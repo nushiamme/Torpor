@@ -5,7 +5,7 @@
 ## *Equal authors
 ## Code by: Anusha Shankar, github/nushiamme
 ## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
-# This script contains code for the temperature plots
+# This script contains code for the two temperature plots
 
 ## Contents:
 # Figure 2: Chamber Temp plots by hour, per site
