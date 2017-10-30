@@ -42,6 +42,7 @@ tc_summ$Site <- factor(tc_summ$Site, levels=c('HC','SC','SWRS','MQ','SL'))
 Hour_labels <- c("1900", "2000", "2100", "2200","2300", "2400", "100", 
                  "200", "300", "400", "500", "600", "700")
 
+
 #### Formatting dataframes ####
 ## Melting dataframes to make them easier to plot
 # First for ambient temperature
@@ -59,6 +60,7 @@ names(m.tc) <- c("Site", "Hour", "Variable", "Temperature") #Rename columns
 m.tc$Site <- factor(m.tc$Site, levels=c('HC','SC','SWRS','MQ','SL')) # Reorder sites
 # Rename sites to full names
 levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maqui", "Santa Lucia")
+
 
 #### Plots ####
 ## Figure 2

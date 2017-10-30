@@ -8,6 +8,7 @@
 # This script contains code for torpor/respirometry plots
 
 ## Contents
+## Setup, add columns, define background plot functions and objects
 ## Figure 3: VO2 for broad-billed hummingbirds showing inflection point at 14-15 degC
 ## Supplementary Figure S5: Duration of torpor per individual per night, 
 # as a function of the hour of entry
@@ -18,7 +19,8 @@
 # excluding rewarming, as a function of individual mass
 
 
-#### libraries and reading in data ####
+#### Setup #### 
+## Libraries and reading in data
 library(ggplot2)
 library(reshape)
 #library(gridExtra)
@@ -37,7 +39,7 @@ freq_sp <- read.csv("Frequency_torpor_sp.csv") # Frequency of torpor use per spe
 ## Make the column for 'proportion of night spent torpid' a numeric column
 torpor$Prop_hours <- as.numeric(as.character(torpor$Prop_hours))
 
-##### Adding columns #######
+## Adding columns
 ## Adding column dividing NEE by 2/3*Mass to correct for mass with allometric scaling - can be changed to test
 # other allometries
 torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
@@ -64,7 +66,7 @@ torpor$Hours_torpid2[is.na(torpor$Hours_torpid2)] <- 0
 # relative to normothermy
 torpor$savings <- 100-torpor$Percentage_avg
 
-#### Make new data frames ####
+## Make new data frames ##
 ## Make dataframe to check site-wise frequency of torpor
 rate_site <- data.frame(table(torpor$Site,torpor$Torpid_not))
 names(rate_site) <- c("Site", "Torpid_not", "N")
@@ -152,7 +154,7 @@ mass.agg2 <- aggregate(torpor$Mass, by=list(torpor$Species),
 rewarm.agg <- merge(rewarm.agg, mass.agg2, by=c('Group.1'))
 names(rewarm.agg) <- c("Species", "Rewarming_O2_rate", "Mass")
 
-#### General functions ####
+## General functions ##
 ## Saving standard theme  
 my_theme <- theme_classic(base_size = 30) + 
   theme(axis.title.y = element_text(color = "black", vjust = 2),

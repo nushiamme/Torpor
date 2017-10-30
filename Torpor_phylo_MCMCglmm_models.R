@@ -7,6 +7,11 @@
 ## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
 ## Thank you Liliana Davalos for help with this!
 ## Started Nov 23, 2016
+## MCMCglmm models, accounting for both the phylogenetic structure and the repeated-measures per
+# species
+
+## Contents
+# 
 
 library(MCMCglmm)
 library(nlme)
@@ -15,21 +20,30 @@ library(geiger) # for treedata() function
 library(caper)
 library(lattice) # for xyplot function
 
+#### Setup ####
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data\\")
 
+## Read in torpor data file
 torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual
-tor_freq <- read.csv("Torpor_freq.csv")
+
+## Read in McGuire et al. 2014 hummingbird phylogeny
+tree<-read.tree("hum294.tre")
 
 #### Adding columns ####
+
+#Mass-correct nighttime energy expenditure - done here to allow for 
+#freedom in changing allometric exponent
 torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
-#First converting NA's in Hours_torpid into 0's.
+
+#Converting NA's in Hours_torpid column into 0's.
 torpor$Hours2 <- torpor$Hours_torpid
 torpor$Hours2[is.na(torpor$Hours2==TRUE)] <- 0
-#Making a column for energy savings as a proportion of energy expenditure (normothermic-torpor)/torpor
+
+#Making a column for energy savings as a proportion of energy expenditure 
+#savings = ((normothermic-torpor)/normothermic)*100
 torpor$savings <- 100-torpor$Percentage_avg
 torpor$savings2 <- 100-torpor$Percentage_avg
 torpor$savings2[is.na(torpor$savings2)] <- 0
-#torpor$savings2 <- scale(torpor$savings2, center=T, scale=F)[,1] # to center savings on zero
 
 ## To make column where savings is a binned, ordinal value.
 torpor$savings_quantile <- with(torpor, factor(
@@ -44,12 +58,11 @@ torpor$savings_quantile2 <- as.factor(torpor$savings_quantile)
 torpor$kJ_rewarming2 <- torpor$kJ_rewarming_BeforeOvershoot
 torpor$kJ_rewarming2[is.na(torpor$kJ_rewarming2==TRUE)] <- 0
 
-#### Phylogenetic components ####
-tree<-read.tree("hum294.tre")
-#show tip names
-#tree$tip.label
-#replace tip names with those in torpor database
-## If using an updated tree check tree names again
+#### Phylogenetic components - prune tree ####
+#Replace tip names in the tree with those in torpor database
+## If using an updated tree check tree names again. Using a hard replace here because there aren't
+#too many to be replaced.
+#(To show tip names, use: tree$tip.label)
 tree$tip.label[1]<-"WNJ"
 tree$tip.label[12]<-"TBH"
 tree$tip.label[92]<-"EMB"
@@ -77,68 +90,47 @@ plot(tre1)
 #within the phylogeny, we need turn the phylogeny into an inverse matrix
 inv.phylo<-inverseA(tre1,nodes="TIPS",scale=TRUE)
 #set up a prior for a phylogenetic mixed model
-#changed nu from 0.002 to 1 for both G and R on May 22, 2017
+#Setting priors to be very uninformative
 prior<-list(G=list(G1=list(V=1,nu=1)),R=list(V=1,nu=1)) 
-#run the hierarchical phyogenetic model, the name of the species (repeated across rows of observations) 
+#run the hierarchical phyogenetic model, the name of the species 
+#(repeated across rows of observations) 
 
+#### Model for probability of entry into torpor as a function of mass ####
+## Table 3 and Supp. Figure S4
 ## Frequency converted into bernoulli individual-level torpor-not
-## This is the model for frequency
 mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                    verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(mfreq1)
-plot(mfreq1) ## Figure 2
+summary(mfreq1) ## Table 3
+plot(mfreq1) ## Supp. Figure S4
 
-mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
-                    random=~Species, family='gaussian',
-                    ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
-                    data=torpor[torpor$Torpid_not=="T",],
-                    verbose=F,nitt=5e6, thin=1000)
-summary(mrewarm)
-plot(mrewarm)
-
-mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass+Rewarming_Tc, 
-                       random=~Species, family='gaussian',
-                       ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
-                       data=torpor[torpor$Torpid_not=="T",],
-                       verbose=F,nitt=5e6, thin=1000)
-summary(mrewarm_tc)
-par(mar = rep(2, 4))
-plot(mrewarm_tc)
-
-autocorr(mrewarm_tc)
-
-## Without mass-corrections - don't use - exploratory
-m2<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
-             prior=prior, data=torpor, verbose=FALSE)
-summary(m2)
-
+#### Nighttime energy expenditure MCMCglmm models (stepwise) ####
+## All these model results are summarized in Supp. Table S2
 ## Mass-corrected NEE as a function of Mass
-m3a<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species, 
+mNEE_a<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m3a)
+summary(mNEE_mass)
 
 ## As a function of duration of torpor
-m3b<-MCMCglmm(NEE_MassCorrected~Hours2, random=~Species, 
+mNEE_dur<-MCMCglmm(NEE_MassCorrected~Hours2, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m3b)
-plot(m3b) ## Figure 5
+summary(mNEE_dur)
 
 ## Of min chamber temperature
-m3c<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species, 
+mNEE_tc<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m3c)
+summary(mNEE_tc)
 
 ## Duration + min chamber temperature
-m3d<-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species, 
+mNEE_dur_tc <-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m3d)
+summary(mNEE_dur_tc)
 par(mar = rep(2, 4))
-plot(m3d)
+plot(mNEE_dur_tc) ## Supp Figure S8
 
 ## Used this model up to April 2017
 m3<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C, random=~Species, 
@@ -182,3 +174,22 @@ autocorr(m5) #To check how autocorrelated the variables are
 m6 <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings, data=torpor[torpor$Hours2!=0,])
 summary(m6)
 
+#### Rewarming ####
+## First model for rewarming, only taking mass (g) into account
+mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
+                       random=~Species, family='gaussian',
+                       ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
+                       data=torpor[torpor$Torpid_not=="T",],
+                       verbose=F,nitt=5e6, thin=1000)
+summary(mrewarm) ## In Supp. Table S3
+plot(mrewarm)
+
+## Second rewarming model, including mass (g) and chamber temperature (deg C) during rewarming
+mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass+Rewarming_Tc, 
+                       random=~Species, family='gaussian',
+                       ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
+                       data=torpor[torpor$Torpid_not=="T",],
+                       verbose=F,nitt=5e6, thin=1000)
+summary(mrewarm_tc) ## Table 5 and in Supp Table S3
+plot(mrewarm_tc) ## Supp. Figure S10
+autocorr(mrewarm_tc) ## Checking autocorrelation between variables
