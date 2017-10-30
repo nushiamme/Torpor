@@ -5,6 +5,11 @@
 ## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions
 ## Plots and analyses for paper on hummingbird torpor in Arizona and Ecuador
 
+#Contents
+# Figure 2: Chamber temperatures
+# Figure 3: VO2 for broad-billed hummingbirds showing inflection point at 14-15 degC
+
+
 #### libraries and reading in data ####
 library(ggplot2)
 library(reshape)
@@ -15,6 +20,7 @@ library(RColorBrewer)
 
 ## setwd and read in file
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data")
+
 
 ## Use sep=";" if using a csv format from Europe.
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual

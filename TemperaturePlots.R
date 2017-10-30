@@ -1,17 +1,17 @@
-## Analyzing and plotting ambient and chamber temperature data for torpor paper
-## Script by Anusha Shankar
-## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, Susan M Wethington, Catherine H Graham, Donald R Powers
+## Code for paper titled:
+#"Torpid hummingbirds- energy savings in temperate and tropical sites"
+## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, 
+# Susan M Wethington, Catherine H Graham, Donald R Powers
+# *Equal authors
 ## Script started on: Sept 24, 2016
-## Thanks
-## If you know how to make the hours into ordered factors that are easy to plot without the messiness below, 
-## please email anusha<dot>shankar<at>stonybrook<dot>edu
-# * = equal authors
+## If you know how to make the hours into ordered factors that are 
+## easy to plot without the messiness below, please let me know! - Anusha
 
 require(ggplot2) 
 require(reshape)
 
 ## Set wd and read in files
-setwd("C://Users//shankar//Dropbox//Hummingbird energetics//Submission_Oct2016")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data")
 
 ## Read in files
 tatc <- read.csv("TempSummary_AllSites.csv")
@@ -57,7 +57,7 @@ tatc_summ <- merge(ta_summ, tc_summ, by=c("Site", "Hour2"))
 tatc_summ$Site <- factor(tatc_summ$Site, levels=c('HC','SC','SWRS','MQ','SL'))
 
 #### Plots ####
-## Figure 1
+## Figure 2
 ## Chamber Temp plots by hour, per site
 ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme + 
   facet_grid(~Site, labeller = labeller(Site = label_wrap_gen(10))) +
@@ -83,14 +83,4 @@ AmbTemp <- ggplot(m.ta, aes(Hour,Temperature, alpha=Variable)) + facet_grid(.~Si
         panel.grid.major.y = element_line(size=.1, color="grey75"), strip.text.x = element_text(size = 18),
         axis.title.y=element_text(vjust=-3)) + #xlim("1900", "2200", "100", "400", "700") +
   xlab("Hour") + ylab(Ta.lab) #+ ggtitle("a.") 
-AmbTemp
-
-## Old ambient temp - Black with "Error-like bars" depicting max and min temps
-AmbTemp <- ggplot(ta_summ, aes(Hour2,Mean_Ta)) + my_theme + facet_grid(.~Site) +  
-  geom_point(aes(group=Site), size=1.5) +
-  geom_line(aes(group=Site)) +
-  geom_errorbar(aes(ymin= Min_Ta, ymax= Max_Ta), alpha=0.6, width=.1, position=pd) +
-  theme(axis.text.x = element_text(angle = 90, size=15), legend.position="none") +
-  xlab("Hour") + ylab(Ta.lab) + ggtitle("Sites") + theme(plot.title = element_text(size = 20)) +
-  scale_x_discrete(labels=Hour_labels)
 AmbTemp
