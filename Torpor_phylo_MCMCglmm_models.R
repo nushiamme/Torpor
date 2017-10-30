@@ -10,8 +10,12 @@
 ## MCMCglmm models, accounting for both the phylogenetic structure and the repeated-measures per
 # species
 
-## Contents
-# 
+### Contents
+## Setup, read files in, format data
+## Table 3 and Supp Figure S4: Model for Probability of entry into torpor ~ mass
+## NEE models; summarized in Supp Table S2
+## Supp Figure S4: Plot of best model of nighttime energy expenditure 
+# (i.e. Mass-corrected NEE ~ torpor duration + min chamber temperature)
 
 library(MCMCglmm)
 library(nlme)
@@ -106,8 +110,9 @@ plot(mfreq1) ## Supp. Figure S4
 
 #### Nighttime energy expenditure MCMCglmm models (stepwise) ####
 ## All these model results are summarized in Supp. Table S2
+## All these models use mass-corrected nighttime energy expenditure as the dependent variable
 ## Mass-corrected NEE as a function of Mass
-mNEE_a<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species, 
+mNEE_mass<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_mass)
@@ -124,59 +129,61 @@ mNEE_tc<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species,
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_tc)
 
+## This is the best model; lowest DIC value
 ## Duration + min chamber temperature
 mNEE_dur_tc <-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(mNEE_dur_tc)
+summary(mNEE_dur_tc) ## Table 4
 par(mar = rep(2, 4))
 plot(mNEE_dur_tc) ## Supp Figure S8
 
-## Used this model up to April 2017
-m3<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C, random=~Species, 
+## Mass + Duration + min chamber temperature
+mNEE_mass_dur_tc <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C, random=~Species, 
              ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
              verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m3)
+summary(mNEE_mass_dur_tc)
 
-## As a function of hourly energy savings
-m4a <- MCMCglmm(NEE_MassCorrected~savings_quantile, random=~Species, 
+## As a function of hourly energy savings (as a quantile because otherwise 0's swamp differences
+# between non-zeros)
+mNEE_sav <- MCMCglmm(NEE_MassCorrected~savings_quantile, random=~Species, 
                 ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                 verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m4a)
+summary(mNEE_sav)
 
 ## Duration + min temp + savings
-m4b <- MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C+savings_quantile, random=~Species, 
+mNEE_dur_tc_sav <- MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C+savings_quantile, random=~Species, 
                 ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                 verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m4b)
+summary(mNEE_dur_tc_sav)
 
+## NEE ~ 
 ## This was the full model used until July 2017
-m5<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile,
+mNEE_mass_dur_tc_sav <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile,
              random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
              prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m5)
+summary(mNEE_mass_dur_tc_sav)
 par(mar = rep(2, 4))
-plot(m5)
-autocorr(m5) #To check how autocorrelated the variables are
+plot(mNEE_mass_dur_tc_sav)
+autocorr(mNEE_mass_dur_tc_sav) #To check how autocorrelated the variables are
 
 ### Full model including rewarming, Oct 2017
-m6<-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile+
+mNEE_full <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile+
                kJ_rewarming2, 
              random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
              prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(m6)
-par(mar = rep(2, 4))
-plot(m6)
-autocorr(m5) #To check how autocorrelated the variables are
+summary(mNEE_full)
+plot(mNEE_full) 
 
 ## Without any phylogenetic corrections- shows that results have an inflated significance when 
 #phylo corrections are not done
-m6 <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings, data=torpor[torpor$Hours2!=0,])
-summary(m6)
+mNEE_nophylo <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings,
+                        data=torpor[torpor$Hours2!=0,])
+summary(mNEE_nophylo)
 
 #### Rewarming ####
 ## First model for rewarming, only taking mass (g) into account
-mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
+mrewarm <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
                        random=~Species, family='gaussian',
                        ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                        data=torpor[torpor$Torpid_not=="T",],
