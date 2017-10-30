@@ -22,7 +22,7 @@ library(nlme)
 library(ape)
 library(geiger) # for treedata() function
 library(caper)
-library(lattice) # for xyplot function
+library(coda)
 
 #### Setup ####
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data\\")
