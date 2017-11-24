@@ -1,14 +1,16 @@
 ---
 title: "README"
 subtitle: "Torpid hummingbirds- energy savings in temperate and tropical sites"
-output: html_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 **Paper authors: Anusha Shankar\*, Rebecca J Schroeder\*, Susan M Wethington, Catherine H Graham, Donald R Powers**
 
 \*Equal authors
 
-Code by: Anusha Shankar, github/nushiamme; contact: anusha.shankar\@stonybrook.edu for questions about code
+Code by: Anusha Shankar, github/nushiamme; contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
 
 #### Code organisation
 The code is organized by data type into 3 scripts, for  
