@@ -51,7 +51,7 @@ m.ta <- melt(ta_summ, id.vars = c("Site", "Hour2"),
 names(m.ta) <- c("Site", "Hour", "Variable", "Temperature") #Rename columns
 m.ta$Site <- factor(m.ta$Site, levels=c('HC','SC','SWRS','MQ','SL')) # Reorder sites
 # Rename sites to full names
-levels(m.ta$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maqui", "Santa Lucia")
+levels(m.ta$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maquipucuna", "Santa Lucia")
 
 # Then for chamber temperature
 m.tc <- melt(tc_summ, id.vars = c("Site", "Hour2"), 
@@ -59,7 +59,7 @@ m.tc <- melt(tc_summ, id.vars = c("Site", "Hour2"),
 names(m.tc) <- c("Site", "Hour", "Variable", "Temperature") #Rename columns
 m.tc$Site <- factor(m.tc$Site, levels=c('HC','SC','SWRS','MQ','SL')) # Reorder sites
 # Rename sites to full names
-levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maqui", "Santa Lucia")
+levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maquipucuna", "Santa Lucia")
 
 
 #### Plots ####
