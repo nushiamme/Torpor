@@ -25,7 +25,7 @@ library(ggplot2)
 library(reshape)
 
 ## setwd and read in file
-setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data")
 
 ## Use sep=";" if using a csv format from Europe.
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
@@ -84,7 +84,7 @@ bblh_tnz$N_T <- factor(bblh_tnz$N_T, levels=c('T', 'N')) # Reorder levels BBLH t
 ## In torpor dataset
 ## Make species a sensible order, for just species that used torpor - used in Supp Fig S6
 torpor$Species2 <- factor(torpor$Species,
-                          levels = c('BBLH','MAHU','GCB','FBB','TBH', "WNJ"), ordered = T)
+                          levels = c('BBLH','RIHU','GCB','FBB','TBH', "WNJ"), ordered = T)
 
 ## Savings column to convert percentage energy expended in torpor relative to 
 # normothermy, into savings relative to normothermy - used in Supp Fig S6
@@ -127,7 +127,6 @@ levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_torpid_Mas
 
 m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels = 
                                    rev(levels(m_GCB_tor_nor$variable)))
-
 
 #### Plots ####
 ## Figure 3 

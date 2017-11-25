@@ -16,7 +16,7 @@ require(reshape)
 
 #### Setup ####
 ## Set wd and read in files
-setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data")
 
 ## Read in files
 tc_summ <- read.csv("Tc_AllSites_summ.csv") # Chamber temperatures

@@ -16,7 +16,7 @@
 ## Supp Table S2: Summary of multiple NEE models
 ## Supp Figure S8: Plot of best model of nighttime energy expenditure 
 # (i.e. Mass-corrected NEE ~ torpor duration + min chamber temperature)
-## Table 5, Supp Table S3, Supp Figure S10: Rewarming analyses
+## Table 3, Supp Table S3, Supp Figure S10: Rewarming analyses
 
 library(MCMCglmm)
 library(nlme)
@@ -26,7 +26,7 @@ library(caper)
 library(coda) # only for autocorr function
 
 #### Setup ####
-setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Jul2017\\Data\\")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data\\")
 
 ## Read in torpor data file
 torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual
@@ -60,7 +60,7 @@ torpor$savings_quantile <- as.numeric(torpor$savings_quantile)
 torpor$savings_quantile2 <- as.factor(torpor$savings_quantile)
 
 ## Rewarming kJ column - remove NA's
-torpor$kJ_rewarming2 <- torpor$kJ_rewarming_BeforeOvershoot
+torpor$kJ_rewarming2 <- torpor$kJ_rewarming
 torpor$kJ_rewarming2[is.na(torpor$kJ_rewarming2==TRUE)] <- 0
 
 #### Phylogenetic components - prune tree ####
@@ -135,7 +135,7 @@ summary(mNEE_tc)
 mNEE_dur_tc <-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(mNEE_dur_tc) ## Table 4
+summary(mNEE_dur_tc) ## Table 3
 par(mar = rep(2, 4))
 plot(mNEE_dur_tc) ## Supp Figure S8
 
@@ -184,7 +184,7 @@ summary(mNEE_nophylo)
 
 #### Rewarming ####
 ## First model for rewarming, only taking mass (g) into account
-mrewarm <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass, 
+mrewarm <- MCMCglmm(kJ_rewarming~Mass, 
                        random=~Species, family='gaussian',
                        ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                        data=torpor[torpor$Torpid_not=="T",],
@@ -193,11 +193,11 @@ summary(mrewarm) ## In Supp. Table S3
 plot(mrewarm)
 
 ## Second rewarming model, including mass (g) and chamber temperature (deg C) during rewarming
-mrewarm_tc <- MCMCglmm(kJ_rewarming_BeforeOvershoot~Mass+Rewarming_Tc, 
+mrewarm_tc <- MCMCglmm(kJ_rewarming~Mass+Rewarming_Tc, 
                        random=~Species, family='gaussian',
                        ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                        data=torpor[torpor$Torpid_not=="T",],
                        verbose=F,nitt=5e6, thin=1000)
-summary(mrewarm_tc) ## Table 5 and in Supp Table S3
+summary(mrewarm_tc) ## Table 3 and in Supp Table S3
 plot(mrewarm_tc) ## Supp. Figure S10
 autocorr(mrewarm_tc) ## Checking autocorrelation between variables
