@@ -4,7 +4,7 @@
 # Susan M Wethington, Catherine H Graham, Donald R Powers
 ## *Equal authors
 ## Code by: Anusha Shankar, github/nushiamme; 
-# contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
+# contact: anusha<dot>shankar<at>stonybrook<dot>edu or nushiamme<at>gmail<dot>com for questions about code
 ## Thank you Liliana Davalos for help with these models!
 ## Started Nov 23, 2016
 ## MCMCglmm models, accounting for both the phylogenetic structure and 
@@ -75,7 +75,7 @@ tree$tip.label[93]<-"FBB"
 tree$tip.label[95]<-"GCB"
 tree$tip.label[219]<-"BBLH"
 tree$tip.label[163]<-"BLUH"
-tree$tip.label[156]<-"MAHU"
+tree$tip.label[156]<-"RIHU"
 
 tips<-data.frame(levels(torpor$Species))
 colnames(tips) <- "tips"

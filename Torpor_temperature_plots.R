@@ -4,14 +4,14 @@
 # Susan M Wethington, Catherine H Graham, Donald R Powers
 ## *Equal authors
 ## Code by: Anusha Shankar, github/nushiamme
-## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
+## Contact: anusha<dot>shankar<at>stonybrook<dot>edu or nushiamme<at>gmail<dot>com for questions about code
 # This script contains code for the two temperature plots
 
 ## Contents:
 # Figure 2: Chamber Temp plots by hour, per site
 # Electronic supplementary material, Figure S3: Ambient temp plots by hour, per site
 
-require(ggplot2) 
+require(ggplot2)
 require(reshape)
 
 #### Setup ####
@@ -67,11 +67,9 @@ levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maqu
 ## Chamber Temp plots by hour, per site
 ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme + 
   facet_grid(~Site, labeller = labeller(Site = label_wrap_gen(10))) +
-  #geom_point(aes(group=Variable, col=Variable), size=1.5) +
-  geom_line(aes(group=Variable, col=Variable), size=1.5) +
-  scale_color_manual(values=c("Black", "Blue", "Red")) +
-  scale_alpha_manual(values = c(1, 0.5, 0.5)) +
-  theme(axis.text.x = element_text(angle = 60, size=12, hjust=1), 
+  geom_line(aes(group=Variable), size=1.5) +
+  scale_alpha_manual(values = c(1, 0.4, 0.4)) +
+  theme(axis.text.x = element_text(angle = 60, size=11, hjust=1), 
         legend.position="none", plot.title = element_text(size = 30),
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
         strip.text.x = element_text(size = 18),

@@ -4,7 +4,7 @@
 # Susan M Wethington, Catherine H Graham, Donald R Powers
 ## *Equal authors
 ## Code by: Anusha Shankar, github/nushiamme
-## Contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code
+## Contact: anusha<dot>shankar<at>stonybrook<dot>edu or nushiamme<at>gmail<dot>com for questions about code
 # This script contains code for torpor/respirometry plots
 
 ## Contents
@@ -85,6 +85,9 @@ bblh_tnz$N_T <- factor(bblh_tnz$N_T, levels=c('T', 'N')) # Reorder levels BBLH t
 ## Make species a sensible order, for just species that used torpor - used in Supp Fig S6
 torpor$Species2 <- factor(torpor$Species,
                           levels = c('BBLH','RIHU','GCB','FBB','TBH', "WNJ"), ordered = T)
+
+## Making a column for mass-corrected total Nighttime energy expenditure - useful for summary tables
+torpor$NEE_MassCorrected <- torpor$NEE_kJ/(torpor$Mass^(2/3))
 
 ## Savings column to convert percentage energy expended in torpor relative to 
 # normothermy, into savings relative to normothermy - used in Supp Fig S6
