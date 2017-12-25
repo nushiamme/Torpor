@@ -10,12 +10,13 @@
 ## Contents
 ## Setup, add columns, define background plot functions and objects
 ## Figure 3: VO2 for broad-billed hummingbirds showing inflection point at 14-15 degC
-## Supplementary Figure S5: Duration of torpor per individual per night, 
+## Supplementary Figure S5: Faceted plot comparing total duration and total nighttime energy expenditure per site
+## Supplementary Figure S6: Duration of torpor per individual per night, 
 # as a function of the hour of entry
-## Supplementary Figure S6: Average hourly torpid energy savings relative to normothermy
-## Supplementary Figure S7: Average hourly mass-corrected energy expenditure 
+## Supplementary Figure S7: Average hourly torpid energy savings relative to normothermy
+## Supplementary Figure S8: Average hourly mass-corrected energy expenditure 
 # as a function of minimum hourly chamber temperature
-## Supplementary Figure S9: Total nighttime energy expenditure including and 
+## Supplementary Figure S10: Total nighttime energy expenditure including and 
 # excluding rewarming, as a function of individual mass
 
 
@@ -42,7 +43,8 @@ my_theme <- theme_classic(base_size = 30) +
 my_theme2 <- my_theme + theme_classic(base_size = 15)
 
 ## Template axis labels
-Tc.xlab <- expression(atop(paste("Chamber Temperature (", degree,"C)")))
+Tc.xlab <- expression(atop(paste("Chamber Temperature (", degree,"C)"))) # for chamber temperature
+NEE_corrlab <- bquote('Nighttime energy expenditure (kJ/' ~M^(0.67)*')') # for mass-corrected nighttime energy expenditure
 
 ## Function for adding a regression equation to graphs
 ## (Where y= table$column for y in the equation and x= table$column for x)
@@ -85,6 +87,12 @@ bblh_tnz$N_T <- factor(bblh_tnz$N_T, levels=c('T', 'N')) # Reorder levels BBLH t
 ## Make species a sensible order, for just species that used torpor - used in Supp Fig S6
 torpor$Species2 <- factor(torpor$Species,
                           levels = c('BBLH','RIHU','GCB','FBB','TBH', "WNJ"), ordered = T)
+
+#For Supp Fig S5, order and expand site names
+torpor$Site_full <- torpor$Site
+torpor$Site_full <- factor(torpor$Site_full, levels=c('HC', 'SC', 'SWRS', 'MQ','SL'))
+levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maquipucuna", "Santa Lucia")
+
 
 ## Making a column for mass-corrected total Nighttime energy expenditure - useful for summary tables
 torpor$NEE_MassCorrected <- torpor$NEE_kJ/(torpor$Mass^(2/3))
@@ -150,6 +158,21 @@ dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) +
   geom_text(x = 5.5, y = 6, label = lm_eqn(torpor$Hours_torpid, torpor$EntryTime_numeric), 
             parse=T, size=5)
 dur_entrytime
+
+## Supp Figure S5
+## NEE plot by site
+NEE_site <- ggplot(torpor, aes(Site_full, NEE_MassCorrected)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
+  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
+                    axis.title=element_text(size=20)) + 
+  ylab(NEE_corrlab) + xlab("Site")
+NEE_site
+## Now hours torpid
+Hours_site <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Site_full, Hours_torpid)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
+  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
+                    axis.title=element_text(size=20)) + 
+  ylab("Duration of torpor (hours)") + xlab("Site")
+Hours_site
+grid.arrange(Hours_site, NEE_site, ncol=2, nrow=1)
 
 ## Supp Figure S6
 ## Savings plot by species
