@@ -106,6 +106,13 @@ plot(mrewarm_tc)
 
 autocorr(mrewarm_tc)
 
+## Model of duration ~ min chamber temperature of the night and mass
+torpor$night_length <- torpor$Hours_normo+torpor$Hours2
+mdur_tc_mass<-MCMCglmm(Hours2~Tc_min_C+Mass+night_length, random=~Species, 
+                       ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+                       verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(mdur_tc_mass)
+
 ## Without mass-corrections - don't use - exploratory
 m2<-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
              prior=prior, data=torpor, verbose=FALSE)

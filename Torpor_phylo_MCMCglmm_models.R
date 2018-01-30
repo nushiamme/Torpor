@@ -27,6 +27,8 @@ library(coda) # only for autocorr function
 
 #### Setup ####
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data\\")
+#GFU wd
+setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/")
 
 ## Read in torpor data file
 torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual

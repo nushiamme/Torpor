@@ -132,6 +132,22 @@ ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "No
   #scale_color_manual(values=c("black", "red")) +
   my_theme + theme(legend.key.height = unit(3, 'lines'))
 
+bblh_normo <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Normo",])
+bblh_normo_subset <- bblh_normo[!bblh_normo$Bird_no=="BBLH12",]
+ggplot(bblh_normo, aes(Temperature, VO2)) + 
+  geom_point(aes(col=Bird_no), size=2, alpha=0.7) +
+  geom_smooth(method = lm, col='black') + xlim(0,50) +
+  geom_text(x = 30, y = 0.6, label = lm_eqn(bblh_normo$VO2,
+                                            bblh_normo$Temperature), parse=T, size=8) + 
+  my_theme + theme(legend.key.height = unit(3, 'lines'))
+
+## Energy savings vs. Duration
+ggplot(torpor, aes(Hours_torpid, 100-Percentage_avg)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
+  theme(legend.key.height = unit(3, 'lines')) + ylab("Hourly energy savings (%)") + xlab("Torpor duration (hours)")
+
+ggplot(torpor, aes(Hours_torpid, Tc_min_C)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
+  theme(legend.key.height = unit(3, 'lines')) + xlab("Torpor duration (hours)")
+
 ## And plot the regression
 savings_mass <- ggplot(torpor[!is.na(torpor$savings),], aes(Mass, savings)) + 
   geom_point(aes(col=Tc_min_C), size=3) + my_theme + geom_smooth(method = lm, col='black') +
@@ -927,3 +943,8 @@ t.test(m.prophours$value[m.prophours$Temptrop=="Temperate"],
 ## Testing just hourly torpid EE in HC vs. SC birds
 t.test(torpor$Avg_EE_hourly_torpid[torpor$Site=="HC"], 
        torpor$Avg_EE_hourly_torpid[torpor$Site=="SC"], paired=F)
+
+
+lm(formula = bblh_VO2_temp_hourly$VO2[bblh_VO2_temp_hourly$Torpid_not == 
+                                        "Normo"] ~ bblh_VO2_temp_hourly$Temperature[bblh_VO2_temp_hourly$Torpid_not == 
+                                                                                      "Normo"])
