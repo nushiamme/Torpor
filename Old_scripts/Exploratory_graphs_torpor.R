@@ -16,15 +16,17 @@ library(dplyr)
 library(rgl)
 
 ## Set working directory
-#wdCH
-setwd("C:\\Users\\shankar\\Dropbox\\Hummingbird energetics\\Submission_Oct2016")
+#GFU wd
+setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/")
 #wdMS
-#setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Tables_for_paper")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Tables_for_paper")
 
 ## Used a European computer last- remove the sep=";" if using a csv format where commas are separators.
-torpor <- read.csv("Torpor_individual_summaries.csv", sep=";")
+torpor <- read.csv("Torpor_individual_summaries.csv")
 freq_sites <- read.csv("Frequency_torpor_sites.csv")
 freq_sp <- read.csv("Frequency_torpor_sp.csv")
+## BBLH hourly temperature and VO2
+bblh_VO2_temp_hourly <- read.csv("../../Arizona_Torpor/BBLH_hourly_VO2_and_temp.csv")
 
 torpor$Percentage_avg <- as.numeric(as.character(torpor$Percentage_avg))
 torpor$Prop_hours <- as.numeric(as.character(torpor$Prop_hours))
@@ -123,6 +125,12 @@ Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
 
 ## Testing the effect of mass on hourly energy expenditure in torpor vs. normothermy
 summary(lm(torpor$Percentage_avg[!is.na(torpor$Percentage_avg)] ~ torpor$Mass[!is.na(torpor$Percentage_avg)]))
+
+## Jan 2018, trying out BBLH VO2 vs. temp, colored by normo and torpid or by species
+ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "Normo"),], aes(Temperature, VO2)) + 
+  geom_point(aes(col=Bird_no), size=2, alpha=0.7) + #geom_point(aes(col=Torpid_not), size=2, alpha=0.7) +
+  #scale_color_manual(values=c("black", "red")) +
+  my_theme + theme(legend.key.height = unit(3, 'lines'))
 
 ## And plot the regression
 savings_mass <- ggplot(torpor[!is.na(torpor$savings),], aes(Mass, savings)) + 
@@ -571,11 +579,15 @@ m_BBLH_avgEE_normo_Tcmin_eq <- ggplot(BBLH_torpor, aes(as.numeric(Tc_min_C),
   scale_shape_manual(values=c(3,1,2,0,15,16,17,23)) +
   scale_color_brewer(palette = "Set1") + #xlim(0, 30) +
   geom_text(aes(label=Torpid_not, hjust=1.75, fontface="bold"),size=5) +
+  geom_text(label = lm_eqn(BBLH_torpor$AvgEE_normo_MassCorrected, 
+                                             BBLH_torpor$Tc_min_C), parse=T, size=8) +
   ylab("Avg BBLH normothermic EE (kJ/g)") + xlab(Tc_min.xlab) +
   theme(axis.title.x = element_text(size=24, face="bold"),
         axis.text.x = element_text(size=22),
         axis.title.y = element_text(size=24, face="bold"), axis.text.y = element_text(size=24)) 
 m_BBLH_avgEE_normo_Tcmin_eq
+
+lm(BBLH_torpor$Avg_EE_hourly_normo~BBLH_torpor$Tc_min_C)
 
 ## BBLH Avg mass-corrected hourly torpid EE vs. min Tc with regression line, facet by site
 m_BBLH_avgEE_torpid_Tcmin_eq <- ggplot(BBLH_torpor, aes(as.numeric(Tc_min_C), 

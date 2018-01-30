@@ -27,6 +27,8 @@ library(reshape)
 
 ## setwd and read in file
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data")
+#GFU wd
+setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/")
 
 ## Use sep=";" if using a csv format from Europe.
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
@@ -120,7 +122,7 @@ levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_normo_Ma
 levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_torpid_MassCorrected"] <- 
   "Avg Torpid EE"
 
-m_BBLH_tor_nor_$variable <- factor(m_BBLH_tor_nor$variable, 
+m_BBLH_tor_nor$variable <- factor(m_BBLH_tor_nor$variable, 
                                    levels = rev(levels(m_BBLH_tor_nor$variable)))
 
 ## Subset just GCB data (for which we have enough data at multiple sites
