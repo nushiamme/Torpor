@@ -26,7 +26,7 @@ torpor <- read.csv("Torpor_individual_summaries.csv")
 freq_sites <- read.csv("Frequency_torpor_sites.csv")
 freq_sp <- read.csv("Frequency_torpor_sp.csv")
 ## BBLH hourly temperature and VO2
-bblh_VO2_temp_hourly <- read.csv("../../Arizona_Torpor/BBLH_hourly_VO2_and_temp.csv")
+bblh_VO2_temp_hourly <- read.csv("../../Arizona_Torpor/BBLH_hourly_VO2_and_temp_clean.csv")
 
 torpor$Percentage_avg <- as.numeric(as.character(torpor$Percentage_avg))
 torpor$Prop_hours <- as.numeric(as.character(torpor$Prop_hours))
@@ -119,6 +119,7 @@ Ta.xlab <- expression(atop(paste("Ambient Temperature (", degree,"C)")))
 Tc_min.xlab <- expression(atop(paste("Minimum Chamber Temperature (", degree,"C)")))
 NEE_corrlab <- bquote('Nighttime energy expenditure (kJ/' ~M^(0.67)*')')
 Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
+VO2_lab <- expression(paste(VO[2]~mL~O[2]/min))
 
 
 #### Additional plots not in the paper ####
@@ -126,20 +127,43 @@ Nec_consump_lab <- bquote('Nectar consumption/' ~M^(0.67)*'')
 ## Testing the effect of mass on hourly energy expenditure in torpor vs. normothermy
 summary(lm(torpor$Percentage_avg[!is.na(torpor$Percentage_avg)] ~ torpor$Mass[!is.na(torpor$Percentage_avg)]))
 
-## Jan 2018, trying out BBLH VO2 vs. temp, colored by normo and torpid or by species
+## Jan 2018, trying out BBLH VO2 vs. temp (per file save), colored by normo and torpid or by species
 ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "Normo"),], aes(Temperature, VO2)) + 
   geom_point(aes(col=Bird_no), size=2, alpha=0.7) + #geom_point(aes(col=Torpid_not), size=2, alpha=0.7) +
   #scale_color_manual(values=c("black", "red")) +
   my_theme + theme(legend.key.height = unit(3, 'lines'))
 
+## Just normothermic bblh points
 bblh_normo <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Normo",])
-bblh_normo_subset <- bblh_normo[!bblh_normo$Bird_no=="BBLH12",]
 ggplot(bblh_normo, aes(Temperature, VO2)) + 
   geom_point(aes(col=Bird_no), size=2, alpha=0.7) +
-  geom_smooth(method = lm, col='black') + xlim(0,50) +
-  geom_text(x = 30, y = 0.6, label = lm_eqn(bblh_normo$VO2,
+  stat_smooth(aes(x=Temperature, y=VO2), method = "lm", col='black', fullrange = T) + xlim(5,57) + ylim(0,1) +
+  geom_text(x = 40, y = 0.7, label = lm_eqn(bblh_normo$VO2,
                                             bblh_normo$Temperature), parse=T, size=8) + 
-  my_theme + theme(legend.key.height = unit(3, 'lines'))
+  my_theme + theme(legend.key.height = unit(3, 'lines')) +
+  xlab(Tc.xlab) + ylab(VO2_lab)
+
+## Torpid bblh VO2 vs temp
+bblh_torpid <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Torpid",])
+polyn.formula <- bblh_torpid$VO2 ~ poly(bblh_torpid$Temperature, 2, raw = TRUE)
+m_pol <- lm(polyn.formula, bblh_torpid)
+polyn.eq <- as.character(signif(as.polynomial(coef(m_pol)), 2))
+polyn.text <- paste(gsub("x", "~italic(x)", polyn.eq, fixed = TRUE),
+                    paste("italic(R)^2",  
+                          format(summary(m_pol)$r.squared, digits = 2), 
+                          sep = "~`=`~"),
+                    sep = "~~~~")
+ggplot(bblh_torpid, aes(Temperature, VO2)) + 
+  geom_point(aes(col=Bird_no), size=3, alpha=0.7) +
+  geom_smooth(method = "lm", se = T, 
+              formula = y~ poly(x,2,raw=T), 
+              colour = "black") + 
+  annotate(geom = "text", x = 10, y = .2, label = polyn.text, 
+           family = "serif", hjust = 0, parse = TRUE, size=10) +
+  ylim(-0.01,0.3) +
+  my_theme + guides(col=FALSE) +
+  xlab(Tc.xlab) + ylab(VO2_lab)
+
 
 ## Energy savings vs. Duration
 ggplot(torpor, aes(Hours_torpid, 100-Percentage_avg)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +

@@ -47,6 +47,7 @@ my_theme2 <- my_theme + theme_classic(base_size = 15)
 ## Template axis labels
 Tc.xlab <- expression(atop(paste("Chamber Temperature (", degree,"C)"))) # for chamber temperature
 NEE_corrlab <- bquote('Nighttime energy expenditure (kJ/' ~M^(0.67)*')') # for mass-corrected nighttime energy expenditure
+VO2_lab <- expression(paste(VO[2]~mL~O[2]/min))
 
 ## Function for adding a regression equation to graphs
 ## (Where y= table$column for y in the equation and x= table$column for x)
@@ -147,10 +148,29 @@ m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels =
 # at 14-15 degC. Only using subset of the dataset- just torpid values.
 # These measurements were taken under controlled conditions in 5 degC temperature steps, 
 # separately from all the other torpor measurements
-bblh_VO2_temp <- ggplot(bblh_tnz[bblh_tnz$N_T=="T",], aes(Temp_C, VO2)) + 
+bblh_VO2_temp <- ggplot(bblh_tnz[bblh_tnz$N_T=="T",], aes(Temp_C, VO2_all)) + 
   geom_point(size=3) + my_theme2 + geom_smooth(stat='smooth', method='loess', color='black') +
   ylab("Oxygen consumption (ml/min)") + xlab(Tc.xlab)
 plot(bblh_VO2_temp)
+
+## Trying out second order polynomial
+polyn.formula_lab <- bblh_tnz$VO2_all[bblh_tnz$N_T=="T"] ~ poly(bblh_tnz$Temp_C[bblh_tnz$N_T=="T"], 2, raw = TRUE)
+m_pol_lab <- lm(polyn.formula_lab, bblh_torpid)
+polyn.eq_lab <- as.character(signif(as.polynomial(coef(m_pol_lab)), 2))
+polyn.text_lab <- paste(gsub("x", "~italic(x)", polyn.eq_lab, fixed = TRUE),
+                    paste("italic(R)^2",  
+                          format(summary(m_pol_lab)$r.squared, digits = 2), 
+                          sep = "~`=`~"),
+                    sep = "~~~~")
+
+bblh_VO2_temp <- ggplot(bblh_tnz[bblh_tnz$N_T=="T",], aes(Temp_C, VO2_all)) + 
+  geom_point(size=3) + my_theme + 
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2), col='black') +
+  annotate(geom = "text", x = 10, y = .2, label = polyn.text_lab, 
+           family = "serif", hjust = 0, parse = TRUE, size=10) +
+  ylab(VO2_lab) + xlab(Tc.xlab) + ylim(-0.01,0.3)
+plot(bblh_VO2_temp)
+
 
 ## Duration vs. time of entry
 ## Supp Figure S5
