@@ -135,11 +135,23 @@ ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "No
 
 ## Just normothermic bblh points
 bblh_normo <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Normo",])
+lm.formula <- lm(bblh_normo$VO2 ~ bblh_normo$Temperature)
+lm.eq <- as.character(signif(coef(lm.formula), 2))
+lm.text <- paste(gsub("x", "~italic(x)", lm.eq, fixed = TRUE),
+                    paste("italic(R)^2",  
+                          format(summary(lm.formula)$r.squared, digits = 2), 
+                          sep = "~`=`~"),
+                    sep = "~~~~")
 ggplot(bblh_normo, aes(Temperature, VO2)) + 
   geom_point(aes(col=Bird_no), size=2, alpha=0.7) +
-  stat_smooth(aes(x=Temperature, y=VO2), method = "lm", col='black', fullrange = T) + xlim(5,57) + ylim(0,1) +
-  geom_text(x = 40, y = 0.7, label = lm_eqn(bblh_normo$VO2,
-                                            bblh_normo$Temperature), parse=T, size=8) + 
+  stat_smooth(aes(x=Temperature, y=VO2), method = "lm", col='black', fullrange = T) + 
+  xlim(0,57) +
+  annotate(geom = "text", x = 30, y = .6, label = lm_eqn(bblh_normo$VO2, bblh_normo$Temperature), 
+           family = "serif", hjust = 0, parse = TRUE, size=10) +
+  scale_y_continuous(expand=c(0,0), limits=c(-.15,1)) +
+  coord_cartesian(ylim=c(0,1)) +
+  guides()
+  geom_hline(yintercept=0) +
   my_theme + theme(legend.key.height = unit(3, 'lines')) +
   xlab(Tc.xlab) + ylab(VO2_lab)
 
