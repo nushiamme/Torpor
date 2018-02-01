@@ -129,9 +129,8 @@ summary(lm(torpor$Percentage_avg[!is.na(torpor$Percentage_avg)] ~ torpor$Mass[!i
 
 ## Jan 2018, trying out BBLH VO2 vs. temp (per file save), colored by normo and torpid or by species
 ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "Normo"),], aes(Temperature, VO2)) + 
-  geom_point(aes(col=Bird_no), size=2, alpha=0.7) + #geom_point(aes(col=Torpid_not), size=2, alpha=0.7) +
-  #scale_color_manual(values=c("black", "red")) +
-  my_theme + theme(legend.key.height = unit(3, 'lines'))
+  geom_point(aes(fill=Bird_no), size=3, alpha=0.7, pch=21) + #geom_point(aes(col=Torpid_not), size=2, alpha=0.7) +
+  my_theme + theme(legend.key.height = unit(3, 'lines')) + guides(fill=F) + ylab(VO2_lab)
 
 ## Just normothermic bblh points
 bblh_normo <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Normo",])
@@ -143,14 +142,14 @@ lm.text <- paste(gsub("x", "~italic(x)", lm.eq, fixed = TRUE),
                           sep = "~`=`~"),
                     sep = "~~~~")
 ggplot(bblh_normo, aes(Temperature, VO2)) + 
-  geom_point(aes(col=Bird_no), size=2, alpha=0.7) +
+  geom_point(aes(fill=Bird_no), alpha=0.6, size=3, pch=21) +
   stat_smooth(aes(x=Temperature, y=VO2), method = "lm", col='black', fullrange = T) + 
-  xlim(0,57) +
   annotate(geom = "text", x = 30, y = .6, label = lm_eqn(bblh_normo$VO2, bblh_normo$Temperature), 
            family = "serif", hjust = 0, parse = TRUE, size=10) +
+  scale_x_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,54)) +
   scale_y_continuous(expand=c(0,0), limits=c(-.15,1)) +
   coord_cartesian(ylim=c(0,1)) +
-  guides()
+  guides(fill=F) +
   geom_hline(yintercept=0) +
   my_theme + theme(legend.key.height = unit(3, 'lines')) +
   xlab(Tc.xlab) + ylab(VO2_lab)
