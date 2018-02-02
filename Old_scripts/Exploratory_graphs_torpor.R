@@ -14,6 +14,7 @@ library(MASS)
 library(ggbiplot)
 library(dplyr)
 library(rgl)
+library(polynom)
 
 ## Set working directory
 #GFU wd
@@ -130,7 +131,10 @@ summary(lm(torpor$Percentage_avg[!is.na(torpor$Percentage_avg)] ~ torpor$Mass[!i
 ## Jan 2018, trying out BBLH VO2 vs. temp (per file save), colored by normo and torpid or by species
 ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "Normo"),], aes(Temperature, VO2)) + 
   geom_point(aes(fill=Bird_no), size=3, alpha=0.7, pch=21) + #geom_point(aes(col=Torpid_not), size=2, alpha=0.7) +
-  my_theme + theme(legend.key.height = unit(3, 'lines')) + guides(fill=F) + ylab(VO2_lab)
+  my_theme + theme(legend.key.height = unit(3, 'lines')) + 
+  guides(fill=guide_legend(title="Individual ID")) +
+  #guides(fill=F) + 
+  ylab(VO2_lab)
 
 ## Just normothermic bblh points
 bblh_normo <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Normo",])
@@ -149,7 +153,7 @@ ggplot(bblh_normo, aes(Temperature, VO2)) +
   scale_x_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,54)) +
   scale_y_continuous(expand=c(0,0), limits=c(-.15,1)) +
   coord_cartesian(ylim=c(0,1)) +
-  guides(fill=F) +
+  guides(fill=guide_legend(title="Individual ID")) +
   geom_hline(yintercept=0) +
   my_theme + theme(legend.key.height = unit(3, 'lines')) +
   xlab(Tc.xlab) + ylab(VO2_lab)
@@ -171,17 +175,19 @@ ggplot(bblh_torpid, aes(Temperature, VO2)) +
               colour = "black") + 
   annotate(geom = "text", x = 10, y = .2, label = polyn.text, 
            family = "serif", hjust = 0, parse = TRUE, size=10) +
-  ylim(-0.01,0.3) +
-  my_theme + guides(col=FALSE) +
+  ylim(-0.01,0.3) + guides(col=guide_legend(title="Individual ID")) +
+  my_theme + theme(legend.key.height = unit(3, 'lines')) +
   xlab(Tc.xlab) + ylab(VO2_lab)
 
 
 ## Energy savings vs. Duration
-ggplot(torpor, aes(Hours_torpid, 100-Percentage_avg)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
-  theme(legend.key.height = unit(3, 'lines')) + ylab("Hourly energy savings (%)") + xlab("Torpor duration (hours)")
+ggplot(torpor, aes(100-Percentage_avg, Hours_torpid)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
+  theme(legend.key.height = unit(3, 'lines')) + xlab("Hourly energy savings (%)") + ylab("Torpor duration (hours)") +
+  scale_color_brewer(palette = "Set1")
 
-ggplot(torpor, aes(Hours_torpid, Tc_min_C)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
-  theme(legend.key.height = unit(3, 'lines')) + xlab("Torpor duration (hours)")
+ggplot(torpor, aes(Tc_min_C, Hours_torpid2)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
+  theme(legend.key.height = unit(3, 'lines')) + ylab("Torpor duration (hours)") + xlab(Tc_min.xlab) +
+  scale_color_brewer(palette = "Set1")
 
 ## And plot the regression
 savings_mass <- ggplot(torpor[!is.na(torpor$savings),], aes(Mass, savings)) + 
