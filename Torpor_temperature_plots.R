@@ -61,7 +61,6 @@ m.tc$Site <- factor(m.tc$Site, levels=c('HC','SC','SWRS','MQ','SL')) # Reorder s
 # Rename sites to full names
 levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maquipucuna", "Santa Lucia")
 
-
 #### Plots ####
 ## Figure 2
 ## Chamber Temp plots by hour, per site
