@@ -24,6 +24,7 @@
 ## Libraries and reading in data
 library(ggplot2)
 library(reshape)
+library(polynom)
 
 ## setwd and read in file
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data")
@@ -94,7 +95,7 @@ torpor$Species2 <- factor(torpor$Species,
 #For Supp Fig S5, order and expand site names
 torpor$Site_full <- torpor$Site
 torpor$Site_full <- factor(torpor$Site_full, levels=c('HC', 'SC', 'SWRS', 'MQ','SL'))
-levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maquipucuna", "Santa Lucia")
+levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
 
 
 ## Making a column for mass-corrected total Nighttime energy expenditure - useful for summary tables
@@ -126,21 +127,7 @@ levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_torpid_M
 m_BBLH_tor_nor$variable <- factor(m_BBLH_tor_nor$variable, 
                                    levels = rev(levels(m_BBLH_tor_nor$variable)))
 
-## Subset just GCB data (for which we have enough data at multiple sites
-#to do more in-depth analyses)
-GCB_torpor <- subset(torpor, Species=="GCB")
-
-## Melt GCB dataframe to put torpid and normo in same column
-m_GCB_tor_nor <- melt(GCB_torpor, id.vars="Tc_min_C", 
-                      measure.vars = c("AvgEE_torpid_MassCorrected", 
-                                       "AvgEE_normo_MassCorrected"))
-levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_normo_MassCorrected"] <- 
-  "Avg Normothermic EE"
-levels(m_GCB_tor_nor$variable)[levels(m_GCB_tor_nor$variable)=="AvgEE_torpid_MassCorrected"] <- 
-  "Avg Torpid EE"
-
-m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels = 
-                                   rev(levels(m_GCB_tor_nor$variable)))
+bblh_torpid <- bblh_tnz[bblh_tnz$N_T=="T",]
 
 #### Plots ####
 ## Figure 3 
@@ -148,13 +135,13 @@ m_GCB_tor_nor$variable <- factor(m_GCB_tor_nor$variable,levels =
 # at 14-15 degC. Only using subset of the dataset- just torpid values.
 # These measurements were taken under controlled conditions in 5 degC temperature steps, 
 # separately from all the other torpor measurements
-bblh_VO2_temp <- ggplot(bblh_tnz[bblh_tnz$N_T=="T",], aes(Temp_C, VO2_all)) + 
+bblh_VO2_temp <- ggplot(bblh_torpid, aes(Temp_C, VO2_all)) + 
   geom_point(size=3) + my_theme2 + geom_smooth(stat='smooth', method='loess', color='black') +
   ylab("Oxygen consumption (ml/min)") + xlab(Tc.xlab)
 plot(bblh_VO2_temp)
 
 ## Trying out second order polynomial
-polyn.formula_lab <- bblh_tnz$VO2_all[bblh_tnz$N_T=="T"] ~ poly(bblh_tnz$Temp_C[bblh_tnz$N_T=="T"], 2, raw = TRUE)
+polyn.formula_lab <- bblh_torpid$VO2_all ~ poly(bblh_torpid$Temp_C, 2, raw = TRUE)
 m_pol_lab <- lm(polyn.formula_lab, bblh_torpid)
 polyn.eq_lab <- as.character(signif(as.polynomial(coef(m_pol_lab)), 2))
 polyn.text_lab <- paste(gsub("x", "~italic(x)", polyn.eq_lab, fixed = TRUE),

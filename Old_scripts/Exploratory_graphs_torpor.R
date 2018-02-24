@@ -131,10 +131,10 @@ summary(lm(torpor$Percentage_avg[!is.na(torpor$Percentage_avg)] ~ torpor$Mass[!i
 ## Jan 2018, trying out BBLH VO2 vs. temp (per file save), colored by normo and torpid or by species
 ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "Normo"),], aes(Temperature, VO2)) + 
   geom_point(aes(fill=Bird_no), size=3, alpha=0.7, pch=21) + #geom_point(aes(col=Torpid_not), size=2, alpha=0.7) +
-  my_theme + theme(legend.key.height = unit(3, 'lines')) + 
+  my_theme + theme(legend.key.height = unit(2, 'lines')) + 
   guides(fill=guide_legend(title="Individual ID")) +
   #guides(fill=F) + 
-  ylab(VO2_lab)
+  ylab(VO2_lab) + xlab(Tc.xlab)
 
 ## Just normothermic bblh points
 bblh_normo <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Normo",])
@@ -155,7 +155,7 @@ ggplot(bblh_normo, aes(Temperature, VO2)) +
   coord_cartesian(ylim=c(0,1)) +
   guides(fill=guide_legend(title="Individual ID")) +
   geom_hline(yintercept=0) +
-  my_theme + theme(legend.key.height = unit(3, 'lines')) +
+  my_theme + theme(legend.key.height = unit(2, 'lines')) +
   xlab(Tc.xlab) + ylab(VO2_lab)
 
 ## Torpid bblh VO2 vs temp

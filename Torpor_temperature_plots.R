@@ -16,7 +16,7 @@ require(reshape)
 
 #### Setup ####
 ## Set wd and read in files
-setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
 
 ## Read in files
 tc_summ <- read.csv("Tc_AllSites_summ.csv") # Chamber temperatures
@@ -51,7 +51,7 @@ m.ta <- melt(ta_summ, id.vars = c("Site", "Hour2"),
 names(m.ta) <- c("Site", "Hour", "Variable", "Temperature") #Rename columns
 m.ta$Site <- factor(m.ta$Site, levels=c('HC','SC','SWRS','MQ','SL')) # Reorder sites
 # Rename sites to full names
-levels(m.ta$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maquipucuna", "Santa Lucia")
+levels(m.ta$Site) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
 
 # Then for chamber temperature
 m.tc <- melt(tc_summ, id.vars = c("Site", "Hour2"), 
@@ -59,15 +59,16 @@ m.tc <- melt(tc_summ, id.vars = c("Site", "Hour2"),
 names(m.tc) <- c("Site", "Hour", "Variable", "Temperature") #Rename columns
 m.tc$Site <- factor(m.tc$Site, levels=c('HC','SC','SWRS','MQ','SL')) # Reorder sites
 # Rename sites to full names
-levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwest Research Station", "Maquipucuna", "Santa Lucia")
+levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
 
 #### Plots ####
 ## Figure 2
 ## Chamber Temp plots by hour, per site
 ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme + 
   facet_grid(~Site, labeller = labeller(Site = label_wrap_gen(10))) +
-  geom_line(aes(group=Variable), size=1.5) +
-  scale_alpha_manual(values = c(1, 0.4, 0.4)) +
+  geom_line(aes(group=Variable, col=Variable), size=1.5) +
+  scale_color_manual(values=c("Black", "Blue", "Red")) +
+  scale_alpha_manual(values = c(1, 0.5, 0.5)) +
   theme(axis.text.x = element_text(angle = 60, size=11, hjust=1), 
         legend.position="none", plot.title = element_text(size = 30),
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
