@@ -24,7 +24,8 @@
 ## Libraries and reading in data
 library(ggplot2)
 library(reshape)
-library(polynom)
+library(polynom) #### ADD TO README
+library(gridExtra) #### ADD TO README
 
 ## setwd and read in file
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data")
@@ -34,7 +35,8 @@ setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/"
 ## Use sep=";" if using a csv format from Europe.
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
 bblh_tnz <- read.csv("BroadBill.csv") ## For Figure 3, BBLH minimum body temperature
-
+## BBLH hourly temperature and VO2
+bblh_VO2_temp_hourly <- read.csv("../../Arizona_Torpor/BBLH_hourly_VO2_and_temp_clean.csv")
 
 # General functions ####
 ## Saving standard theme  
@@ -97,7 +99,6 @@ torpor$Site_full <- torpor$Site
 torpor$Site_full <- factor(torpor$Site_full, levels=c('HC', 'SC', 'SWRS', 'MQ','SL'))
 levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
 
-
 ## Making a column for mass-corrected total Nighttime energy expenditure - useful for summary tables
 torpor$NEE_MassCorrected <- torpor$NEE_kJ/(torpor$Mass^(2/3))
 
@@ -127,7 +128,8 @@ levels(m_BBLH_tor_nor$variable)[levels(m_BBLH_tor_nor$variable)=="AvgEE_torpid_M
 m_BBLH_tor_nor$variable <- factor(m_BBLH_tor_nor$variable, 
                                    levels = rev(levels(m_BBLH_tor_nor$variable)))
 
-bblh_torpid <- bblh_tnz[bblh_tnz$N_T=="T",]
+bblh_controlled_torpor <- bblh_tnz[bblh_tnz$N_T=="T",]
+
 
 #### Plots ####
 ## Figure 3 
@@ -135,32 +137,58 @@ bblh_torpid <- bblh_tnz[bblh_tnz$N_T=="T",]
 # at 14-15 degC. Only using subset of the dataset- just torpid values.
 # These measurements were taken under controlled conditions in 5 degC temperature steps, 
 # separately from all the other torpor measurements
-bblh_VO2_temp <- ggplot(bblh_torpid, aes(Temp_C, VO2_all)) + 
+bblh_VO2_temp <- ggplot(bblh_controlled_torpor, aes(Temp_C, VO2_all)) + 
   geom_point(size=3) + my_theme2 + geom_smooth(stat='smooth', method='loess', color='black') +
   ylab("Oxygen consumption (ml/min)") + xlab(Tc.xlab)
 plot(bblh_VO2_temp)
 
-## Trying out second order polynomial
-polyn.formula_lab <- bblh_torpid$VO2_all ~ poly(bblh_torpid$Temp_C, 2, raw = TRUE)
-m_pol_lab <- lm(polyn.formula_lab, bblh_torpid)
-polyn.eq_lab <- as.character(signif(as.polynomial(coef(m_pol_lab)), 2))
-polyn.text_lab <- paste(gsub("x", "~italic(x)", polyn.eq_lab, fixed = TRUE),
-                    paste("italic(R)^2",  
-                          format(summary(m_pol_lab)$r.squared, digits = 2), 
-                          sep = "~`=`~"),
-                    sep = "~~~~")
+## BBLH VO2 ml/min vs. temp, colored by normo and torpid or by species
+ggplot(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not %in% c("Torpid", "Normo"),], aes(Temperature, VO2)) + 
+  geom_point(aes(fill=Bird_no), size=3, alpha=0.7, pch=21) + #geom_point(aes(col=Torpid_not), size=2, alpha=0.7) +
+  my_theme + theme(legend.key.height = unit(2, 'lines')) + 
+  guides(fill=guide_legend(title="Individual ID")) +
+  #guides(fill=F) + 
+  ylab(VO2_lab) + xlab(Tc.xlab)
 
-bblh_VO2_temp <- ggplot(bblh_tnz[bblh_tnz$N_T=="T",], aes(Temp_C, VO2_all)) + 
-  geom_point(size=3) + my_theme + 
-  geom_smooth(method = "lm", formula = y ~ x + I(x^2), col='black') +
-  annotate(geom = "text", x = 10, y = .2, label = polyn.text_lab, 
+## Just normothermic bblh points
+bblh_normo <- na.omit(bblh_VO2_temp_hourly[bblh_VO2_temp_hourly$Torpid_not=="Normo",])
+lm.formula <- lm(bblh_normo$VO2 ~ bblh_normo$Temperature)
+lm.eq <- as.character(signif(coef(lm.formula), 2))
+lm.text <- paste(gsub("x", "~italic(x)", lm.eq, fixed = TRUE),
+                 paste("italic(R)^2",  
+                       format(summary(lm.formula)$r.squared, digits = 2), 
+                       sep = "~`=`~"),
+                 sep = "~~~~")
+ggplot(bblh_normo, aes(Temperature, VO2)) + 
+  geom_point(aes(fill=Bird_no), alpha=0.6, size=3, pch=21) +
+  stat_smooth(aes(x=Temperature, y=VO2), method = "lm", col='black', fullrange = T) + 
+  annotate(geom = "text", x = 30, y = .6, label = lm_eqn(bblh_normo$VO2, bblh_normo$Temperature), 
            family = "serif", hjust = 0, parse = TRUE, size=10) +
-  ylab(VO2_lab) + xlab(Tc.xlab) + ylim(-0.01,0.3)
-plot(bblh_VO2_temp)
+  scale_x_continuous(breaks=c(0,10,20,30,40,50), limits = c(0,54)) +
+  scale_y_continuous(expand=c(0,0), limits=c(-.15,1)) +
+  coord_cartesian(ylim=c(0,1)) +
+  guides(fill=guide_legend(title="Individual ID")) +
+  geom_hline(yintercept=0) +
+  my_theme + theme(legend.key.height = unit(2, 'lines')) +
+  xlab(Tc.xlab) + ylab(VO2_lab)
 
+## Supp Figure S5
+## Duration of torpor by site
+Hours_site <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Site_full, Hours_torpid)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
+  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black', family="Times"),
+                    axis.title=element_text(size=20)) + 
+  ylab("Duration of torpor (hours)") + xlab("Site")
+Hours_site
+## NEE plot by site
+NEE_site <- ggplot(torpor, aes(Site_full, NEE_MassCorrected)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
+  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
+                    axis.title=element_text(size=20)) + 
+  ylab(NEE_corrlab) + xlab("Site")
+NEE_site
+grid.arrange(Hours_site, NEE_site, ncol=2, nrow=1)
 
 ## Duration vs. time of entry
-## Supp Figure S5
+## Supp Figure S6
 dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) + 
   geom_point(size=2) + my_theme2 + xlab("Hour of entry") + ylab("Duration of torpor (hours)") +
   geom_smooth(method=lm, size=1, col="black") +
@@ -168,55 +196,13 @@ dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) +
             parse=T, size=5)
 dur_entrytime
 
-## Supp Figure S5
-## NEE plot by site
-NEE_site <- ggplot(torpor, aes(Site_full, NEE_MassCorrected)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
-  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
-                    axis.title=element_text(size=20)) + 
-  ylab(NEE_corrlab) + xlab("Site")
-NEE_site
-## Now hours torpid
-Hours_site <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Site_full, Hours_torpid)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
-  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
-                    axis.title=element_text(size=20)) + 
-  ylab("Duration of torpor (hours)") + xlab("Site")
-Hours_site
-grid.arrange(Hours_site, NEE_site, ncol=2, nrow=1)
-
-## Supp Figure S6
+## Supp Figure S7
 ## Savings plot by species
 savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species2, savings)) + 
   geom_boxplot(outlier.shape = 19, fill= "light grey") + xlab("Species") + 
   ylab("Hourly torpid energy savings (%)") + theme(legend.position="none") + my_theme +
   stat_summary(fun.data = give.n, geom = "text", vjust=-1, size=10)
 savings_plot
-
-## BBLH and GCB plots, building up to Supp Figure S7
-## Both normo and torpid avg mass-corrected EE for BBLH on same graph
-BBLH_tor_nor <- ggplot(m_BBLH_tor_nor, aes(as.numeric(Tc_min_C), value, shape=variable)) +
-  geom_point(aes(shape=variable), size=6) + my_theme2 +
-  geom_smooth(method=lm, size=1, col="black") + 
-  scale_shape_manual("Hourly Energy Expenditure\n", 
-                     values=c(16,1), labels=c("Normothermic", "Torpid")) +
-  theme(legend.key.height=unit(3,"line"), legend.position="bottom", 
-        axis.title.y = element_text(vjust = 2)) +
-  ylab("Mean BBLH Energy Expenditure (kJ/g)") + xlab(Tc.xlab) + ggtitle("b.")
-BBLH_tor_nor 
-
-## Both normo and torpid avg mass-corrected EE for GCB on same graph
-GCB_tor_nor <- ggplot(m_GCB_tor_nor, aes(as.numeric(Tc_min_C), value, shape=variable)) +
-  my_theme2 +  geom_point(aes(shape=variable), size=6) + 
-  geom_smooth(method=lm, size=1, col="black") + 
-  scale_shape_manual("Hourly Energy Expenditure:\n", 
-                     values=c(16,1), labels=c("Normothermic", "Torpid")) +
-  theme(legend.key.height=unit(1,"line"),
-        legend.position="bottom", axis.title.y = element_text(vjust = 2)) + ggtitle("a.") +
-  ylab("Mean GCB Energy Expenditure (kJ/g)") + xlab(Tc.xlab)
-GCB_tor_nor 
-
-## Arrange BBLH and GCB tor_nor plots in a single window
-## This is Supp Figure S7
-grid_arrange_shared_legend(GCB_tor_nor, BBLH_tor_nor)
 
 ## Nighttime energy expenditure with and without rewarming costs - not mass-corrected
 ## Supp Figure S9
