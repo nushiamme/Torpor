@@ -36,7 +36,7 @@ setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/"
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
 bblh_tnz <- read.csv("BroadBill.csv") ## For Figure 3, BBLH minimum body temperature
 ## BBLH hourly temperature and VO2
-bblh_VO2_temp_hourly <- read.csv("../../Arizona_Torpor/BBLH_hourly_VO2_and_temp_clean.csv")
+bblh_VO2_temp_hourly <- read.csv("BBLH_hourly_VO2_and_temp_clean.csv")
 
 # General functions ####
 ## Saving standard theme  
@@ -175,10 +175,11 @@ ggplot(bblh_normo, aes(Temperature, VO2)) +
 ## Supp Figure S5
 ## Duration of torpor by site
 Hours_site <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Site_full, Hours_torpid)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
-  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black', family="Times"),
+  my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
                     axis.title=element_text(size=20)) + 
   ylab("Duration of torpor (hours)") + xlab("Site")
 Hours_site
+
 ## NEE plot by site
 NEE_site <- ggplot(torpor, aes(Site_full, NEE_MassCorrected)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
   my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
