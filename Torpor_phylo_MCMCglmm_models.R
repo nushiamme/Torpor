@@ -5,7 +5,7 @@
 ## *Equal authors
 ## Code by: Anusha Shankar, github/nushiamme; 
 # contact: anusha<dot>shankar<at>stonybrook<dot>edu or nushiamme<at>gmail<dot>com for questions about code
-## Thank you Liliana Davalos for help with these models!
+## Thank you Liliana Davalos and Paige Copenhaver-Parry for help with these models!
 ## Started Nov 23, 2016
 ## MCMCglmm models, accounting for both the phylogenetic structure and 
 # the repeated-measures per species
@@ -14,9 +14,9 @@
 ## Setup, read files in, format data
 ## Table 3 and Supp Figure S4: Model for Probability of entry into torpor ~ mass
 ## Supp Table S2: Summary of multiple NEE models
-## Supp Figure S8: Plot of best model of nighttime energy expenditure 
-# (i.e. Mass-corrected NEE ~ torpor duration + min chamber temperature)
-## Table 3, Supp Table S3, Supp Figure S10: Rewarming analyses
+## Table 3, Supp Figure S10: Plot of best model of nighttime energy expenditure 
+# (i.e. Mass-corrected NEE ~ torpor duration)
+## Table 3, Supp Table S3, Supp Figure S12: Rewarming analyses
 
 library(MCMCglmm)
 library(nlme)
@@ -120,7 +120,7 @@ mNEE_mass<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species,
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_mass)
 
-## As a function of duration of torpor
+## As a function of duration of torpor - this is the best DIC+most parsimonious model - model used in paper
 mNEE_dur<-MCMCglmm(NEE_MassCorrected~Hours2, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
@@ -132,14 +132,14 @@ mNEE_tc<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species,
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_tc)
 
-## This is the best model; lowest DIC value
+## This is the best model in terms of lowest DIC value (by <2 points), but not most parsimonious
 ## Duration + min chamber temperature
 mNEE_dur_tc <-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_tc) ## Table 3
 par(mar = rep(2, 4))
-plot(mNEE_dur_tc) ## Supp Figure S8
+plot(mNEE_dur_tc) ## Supp Figure S10
 
 ## Mass + Duration + min chamber temperature
 mNEE_mass_dur_tc <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C, random=~Species, 
@@ -161,15 +161,6 @@ mNEE_dur_tc_sav <- MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C+savings_quantile, 
 summary(mNEE_dur_tc_sav)
 
 ## NEE ~ 
-## This was the full model used until July 2017
-mNEE_mass_dur_tc_sav <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile,
-             random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
-             prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(mNEE_mass_dur_tc_sav)
-par(mar = rep(2, 4))
-plot(mNEE_mass_dur_tc_sav)
-autocorr(mNEE_mass_dur_tc_sav) #To check how autocorrelated the variables are
-
 ### Full model including rewarming, Oct 2017
 mNEE_full <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile+
                kJ_rewarming2, 
@@ -201,5 +192,4 @@ mrewarm_tc <- MCMCglmm(kJ_rewarming~Mass+Rewarming_Tc,
                        data=torpor[torpor$Torpid_not=="T",],
                        verbose=F,nitt=5e6, thin=1000)
 summary(mrewarm_tc) ## Table 3 and in Supp Table S3
-plot(mrewarm_tc) ## Supp. Figure S10
-autocorr(mrewarm_tc) ## Checking autocorrelation between variables
+plot(mrewarm_tc) ## Supp. Figure S12
