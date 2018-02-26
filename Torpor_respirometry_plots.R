@@ -28,8 +28,8 @@
 ## Libraries and reading in data
 library(ggplot2)
 library(reshape)
-library(polynom) #### ADD TO README
-library(gridExtra) #### ADD TO README
+library(polynom)
+library(gridExtra)
 
 ## setwd and read in file
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
