@@ -26,9 +26,9 @@ library(caper)
 library(coda) # only for autocorr function
 
 #### Setup ####
-setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data\\")
+setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data\\")
 #GFU wd
-#setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/")
+setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/")
 
 ## Read in torpor data file
 torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual
@@ -40,7 +40,7 @@ tree<-read.tree("hum294.tre")
 
 #Mass-correct nighttime energy expenditure - done here to allow for 
 #freedom in changing allometric exponent
-#torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
+torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
 
 #Converting NA's in Hours_torpid column into 0's.
 torpor$Hours2 <- torpor$Hours_torpid
@@ -66,7 +66,7 @@ torpor$kJ_rewarming2 <- torpor$kJ_rewarming
 torpor$kJ_rewarming2[is.na(torpor$kJ_rewarming2==TRUE)] <- 0
 
 #### Phylogenetic components - prune tree ####
-#Replace tip names in the tree with those in torpor_subset database
+#Replace tip names in the tree with those in torpor database
 ## If using an updated tree check tree names again. Using a hard replace here because there aren't
 #too many to be replaced.
 #(To show tip names, use: tree$tip.label)
@@ -98,28 +98,14 @@ plot(tre1)
 inv.phylo<-inverseA(tre1,nodes="TIPS",scale=TRUE)
 #set up a prior for a phylogenetic mixed model
 #Setting priors to be very uninformative
-prior<-list(G=list(G1=list(V=1,nu=0.002)),R=list(V=1,nu=0.002)) 
+prior<-list(G=list(G1=list(V=1,nu=1)),R=list(V=1,nu=1)) 
 #run the hierarchical phyogenetic model, the name of the species 
 #(repeated across rows of observations) 
-prior2 <- list(R = list(V = 10, fix = 1), G = list(G1 = list(V = 1,
-                                                   + nu = 1, alpha.mu = 0, alpha.V = 1000)))
-
-
-## To select priors
-k <- length(levels(torpor$Indiv_ID))
-I <- diag(k-1)
-J <- matrix(rep(1, (k-1)^2), c(k-1, k-1))
-prior <- list(
-  R = list(fix=1, V=0.5 * (I + J), n = 3),
-  G = list(G1 = list(V = diag(1), n = 3)))
 
 #### Model for probability of entry into torpor as a function of mass ####
 ## Table 3 and Supp. Figure S4
 ## Frequency converted into bernoulli individual-level torpor-not
-##Try library(phylolm)
-
-## Do logistic
-mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='ordinal',
+mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='categorical',
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                    verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mfreq1) ## Table 3
@@ -135,17 +121,10 @@ mNEE_mass<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species,
 summary(mNEE_mass)
 
 ## As a function of duration of torpor - this is the best DIC+most parsimonious model - model used in paper
-mNEE_dur<-MCMCglmm(NEE_MassCorrected~Hours2+Mass, random=~Species, 
+mNEE_dur<-MCMCglmm(NEE_MassCorrected~Hours2, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur)
-
-torpor$NEE_mass <- torpor$NEE_kJ/torpor$Mass
-mNEEmass_dur <-MCMCglmm(NEE_mass~Hours2, random=~Species, 
-                   ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
-                   verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(mNEEmass_dur)
-plot(mNEEmass_dur)
 
 ## Of min chamber temperature
 mNEE_tc<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species, 
@@ -214,12 +193,3 @@ mrewarm_tc <- MCMCglmm(kJ_rewarming~Mass+Rewarming_Tc,
                        verbose=F,nitt=5e6, thin=1000)
 summary(mrewarm_tc) ## Table 3 and in Supp Table S3
 plot(mrewarm_tc) ## Supp. Figure S12
-
-
-
-library(phylolm)
-m1.fit<-phyloglm(formula = Tornor ~ Mass, torpor, tre1, method = "logistic_IG10",
-                 boot = 1000,start.beta = c(1,-10), start.alpha = 0.01, full.matrix = T)
-summary(m1.fit)
-coef(m1.fit)
-vcov(m1.fit)
