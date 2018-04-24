@@ -26,7 +26,7 @@ library(caper)
 library(coda) # only for autocorr function
 
 #### Setup ####
-setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Submission_Nov2017\\Data\\")
+setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Feb2018\\Data\\")
 #GFU wd
 #setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/")
 
@@ -39,8 +39,7 @@ tree<-read.tree("hum294.tre")
 #### Adding columns ####
 
 #Mass-correct nighttime energy expenditure - done here to allow for 
-#freedom in changing allometric exponent
-#torpor$NEE_MassCorrected<- torpor$NEE_kJ/(torpor$Mass^(2/3))
+torpor$NEE_mass <- torpor$NEE_kJ/torpor$Mass
 
 #Converting NA's in Hours_torpid column into 0's.
 torpor$Hours2 <- torpor$Hours_torpid
@@ -101,17 +100,16 @@ inv.phylo<-inverseA(tre1,nodes="TIPS",scale=TRUE)
 prior<-list(G=list(G1=list(V=1,nu=0.002)),R=list(V=1,nu=0.002)) 
 #run the hierarchical phyogenetic model, the name of the species 
 #(repeated across rows of observations) 
-prior2 <- list(R = list(V = 10, fix = 1), G = list(G1 = list(V = 1,
-                                                   + nu = 1, alpha.mu = 0, alpha.V = 1000)))
 
+plot(torpor$Mass, torpor$Tornor)
 
 ## To select priors
-k <- length(levels(torpor$Indiv_ID))
+k <- length(levels(torpor$Species))
 I <- diag(k-1)
 J <- matrix(rep(1, (k-1)^2), c(k-1, k-1))
-prior <- list(
-  R = list(fix=1, V=0.5 * (I + J), n = 3),
-  G = list(G1 = list(V = diag(1), n = 3)))
+prior4 <- list(
+  R = list(fix=1, V=0.5 * (I + J), n = 1),
+  G = list(G1 = list(V = diag(1), n = 1)))
 
 #### Model for probability of entry into torpor as a function of mass ####
 ## Table 3 and Supp. Figure S4
@@ -119,43 +117,48 @@ prior <- list(
 ##Try library(phylolm)
 
 ## Do logistic
-mfreq1 <- MCMCglmm(Tornor~Mass, random=~Species, family='ordinal',
+mfreq2 <- MCMCglmm(Tornor~Mass, random=~Species, family='ordinal',
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                    verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(mfreq1) ## Table 3
-plot(mfreq1) ## Supp. Figure S4
+summary(mfreq2) ## Table 3
+plot(mfreq2) ## Supp. Figure S4
+plot(mfreq2$VCV)
 
 #### Nighttime energy expenditure MCMCglmm models (stepwise) ####
 ## All these model results are summarized in Supp. Table S2
 ## All these models use mass-corrected nighttime energy expenditure as the dependent variable
 ## Mass-corrected NEE as a function of Mass
-mNEE_mass<-MCMCglmm(NEE_MassCorrected~Mass, random=~Species, 
+mNEE_mass<-MCMCglmm(NEE_mass~Mass, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_mass)
 
-## As a function of duration of torpor - this is the best DIC+most parsimonious model - model used in paper
-mNEE_dur<-MCMCglmm(NEE_MassCorrected~Hours2+Mass, random=~Species, 
+## Nee (kJ/g) as a function of duration and mass
+mNEE_dur<-MCMCglmm(NEE_mass~Hours2+Mass, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
-summary(mNEE_dur)
+summary(mNEE_dur_mass)
 
-torpor$NEE_mass <- torpor$NEE_kJ/torpor$Mass
+## As a function of duration of torpor - this is the best DIC+most parsimonious model - model used in paper
 mNEEmass_dur <-MCMCglmm(NEE_mass~Hours2, random=~Species, 
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
-                   verbose=FALSE, nitt = 5e6, thin = 1000)
+                   verbose=F, nitt = 5e6, thin = 1000)
 summary(mNEEmass_dur)
+
 plot(mNEEmass_dur)
 
+#Compare raw and mass-corrected NRR (without allometric exponent)
+#plot(mcmc.list(mNEEmass_dur$VCV[, 1]))
+
 ## Of min chamber temperature
-mNEE_tc<-MCMCglmm(NEE_MassCorrected~Tc_min_C, random=~Species, 
+mNEE_tc<-MCMCglmm(NEE_mass~Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_tc)
 
 ## This is the best model in terms of lowest DIC value (by <2 points), but not most parsimonious
 ## Duration + min chamber temperature
-mNEE_dur_tc <-MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C, random=~Species, 
+mNEE_dur_tc <-MCMCglmm(NEE_mass~Hours2+Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_tc) ## Table 3
@@ -163,36 +166,37 @@ par(mar = rep(2, 4))
 plot(mNEE_dur_tc) ## Supp Figure S10
 
 ## Mass + Duration + min chamber temperature
-mNEE_mass_dur_tc <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C, random=~Species, 
+mNEE_mass_dur_tc <-MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C, random=~Species, 
              ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
              verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_mass_dur_tc)
 
 ## As a function of hourly energy savings (as a quantile because otherwise 0's swamp differences
 # between non-zeros)
-mNEE_sav <- MCMCglmm(NEE_MassCorrected~savings_quantile, random=~Species, 
+mNEE_sav <- MCMCglmm(NEE_mass~savings_quantile, random=~Species, 
                 ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                 verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_sav)
+plot(mNEE_sav)
 
 ## Duration + min temp + savings
-mNEE_dur_tc_sav <- MCMCglmm(NEE_MassCorrected~Hours2+Tc_min_C+savings_quantile, random=~Species, 
+mNEE_dur_tc_sav <- MCMCglmm(NEE_mass~Hours2+Tc_min_C+savings_quantile, random=~Species, 
                 ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                 verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_tc_sav)
 
 ## NEE ~ 
 ### Full model including rewarming, Oct 2017
-mNEE_full <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings_quantile+
+mNEE_full <-MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C+savings_quantile+
                kJ_rewarming2, 
              random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
              prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_full)
-plot(mNEE_full) 
+#plot(mNEE_full) 
 
 ## Without any phylogenetic corrections- shows that results have an inflated significance when 
 #phylo corrections are not done
-mNEE_nophylo <-MCMCglmm(NEE_MassCorrected~Mass+Hours2+Tc_min_C+savings,
+mNEE_nophylo <-MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C+savings,
                         data=torpor[torpor$Hours2!=0,])
 summary(mNEE_nophylo)
 
