@@ -17,6 +17,7 @@ require(reshape)
 #### Setup ####
 ## Set wd and read in files
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
+setwd("Users/Dropbox/Hummingbird energetics/Feb2018/Data/") #GFU
 
 ## Read in files
 tc_summ <- read.csv("Tc_AllSites_summ.csv") # Chamber temperatures
@@ -41,6 +42,9 @@ tc_summ$Site <- factor(tc_summ$Site, levels=c('HC','SC','SWRS','MQ','SL'))
 ## Labels for the x-axis text (Hour)
 Hour_labels <- c("1900", "2000", "2100", "2200","2300", "2400", "100", 
                  "200", "300", "400", "500", "600", "700")
+
+Hour_labels_2 <- c("1900", "", "2100", "","2300", "", "100", 
+                 "", "300", "", "500", "", "700")
 
 
 #### Formatting dataframes ####
@@ -74,14 +78,14 @@ ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme +
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
         strip.text.x = element_text(size = 18),
         axis.title.y=element_text(vjust=-3)) + 
-  xlab("Hour") + ylab(Tc.lab) + scale_x_discrete(labels=Hour_labels) #+ ggtitle("b.")
+  xlab("Hour") + ylab(Tc.lab) + scale_x_discrete(labels=Hour_labels_2) #+ ggtitle("b.")
 ChambTemp
 
 ## Supp. Figure S3
 ## Ambient temp plots by hour, per site
 AmbTemp <- ggplot(m.ta, aes(Hour,Temperature, alpha=Variable)) + facet_grid(.~Site) +  my_theme +
   facet_grid(~Site, labeller = labeller(Site = label_wrap_gen(10))) +
-  scale_x_discrete(labels=Hour_labels) +
+  scale_x_discrete(labels=Hour_labels_2) +
   geom_line(aes(group=Variable, col=Variable), size=1.5) +
   scale_color_manual(values=c("Black", "Blue", "Red")) +
   scale_alpha_manual(values = c(1, 0.5, 0.5)) +
