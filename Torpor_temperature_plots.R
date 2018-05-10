@@ -17,7 +17,7 @@ require(reshape)
 #### Setup ####
 ## Set wd and read in files
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
-setwd("Users/Dropbox/Hummingbird energetics/Feb2018/Data/") #GFU
+setwd("Dropbox/Hummingbird energetics/Feb2018/Data") #GFU
 
 ## Read in files
 tc_summ <- read.csv("Tc_AllSites_summ.csv") # Chamber temperatures
@@ -73,7 +73,7 @@ ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme +
   geom_line(aes(group=Variable, col=Variable), size=1.5) +
   scale_color_manual(values=c("Black", "Blue", "Red")) +
   scale_alpha_manual(values = c(1, 0.5, 0.5)) +
-  theme(axis.text.x = element_text(angle = 60, size=11, hjust=1), 
+  theme(axis.text.x = element_text(angle = 60, size=20, hjust=1), 
         legend.position="none", plot.title = element_text(size = 30),
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
         strip.text.x = element_text(size = 18),
@@ -89,7 +89,7 @@ AmbTemp <- ggplot(m.ta, aes(Hour,Temperature, alpha=Variable)) + facet_grid(.~Si
   geom_line(aes(group=Variable, col=Variable), size=1.5) +
   scale_color_manual(values=c("Black", "Blue", "Red")) +
   scale_alpha_manual(values = c(1, 0.5, 0.5)) +
-  theme(axis.text.x = element_text(angle = 60, size=12, hjust=1), 
+  theme(axis.text.x = element_text(angle = 60, size=15, hjust=1), 
         legend.position="none", plot.title = element_text(size = 30),
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
         strip.text.x = element_text(size = 18),
