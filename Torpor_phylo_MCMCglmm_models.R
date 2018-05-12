@@ -185,6 +185,12 @@ mNEE_dur_tc_sav <- MCMCglmm(NEE_mass~Hours2+Tc_min_C+savings_quantile, random=~S
                 verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_tc_sav)
 
+## Mass + duration + min temp + savings
+mNEE_mass_dur_tc_sav <- MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C+savings_quantile, random=~Species, 
+                            ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
+                            verbose=FALSE, nitt = 5e6, thin = 1000)
+summary(mNEE_mass_dur_tc_sav)
+
 ## NEE ~ 
 ### Full model including rewarming, Oct 2017
 mNEE_full <-MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C+savings_quantile+
