@@ -28,10 +28,10 @@ library(coda) # only for autocorr function
 #### Setup ####
 setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Feb2018\\Data\\")
 #GFU wd
-#setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Submission_Nov2017/Data/")
+#setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Feb2018/Data/")
 
 ## Read in torpor data file
-torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual
+torpor <- read.csv("Torpor_individual_summaries_2.csv") #Torpor data file, each row is an individual
 
 ## Read in McGuire et al. 2014 hummingbird phylogeny
 tree<-read.tree("hum294.tre")
@@ -225,6 +225,16 @@ mrewarm_tc <- MCMCglmm(kJ_rewarming~Mass+Rewarming_Tc,
 summary(mrewarm_tc) ## Table 3 and in Supp Table S3
 plot(mrewarm_tc) ## Supp. Figure S12
 
+torpor$kJ_rewarming_mass <- torpor$kJ_rewarming/torpor$Mass
+mrewarm_mass_tc <- MCMCglmm(kJ_rewarming_mass~Mass+Rewarming_Tc, 
+                       random=~Species, family='gaussian',
+                       ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
+                       data=torpor[torpor$Torpid_not=="T",],
+                       verbose=F,nitt=5e6, thin=1000)
+summary(mrewarm_mass_tc) ## 
+plot(mrewarm_mass_tc) ## 
+
+anova(lm(torpor$kJ_rewarming_mass~torpor$Mass,na.action = na.omit))
 
 
 library(phylolm)

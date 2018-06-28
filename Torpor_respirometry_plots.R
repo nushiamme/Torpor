@@ -32,7 +32,8 @@ library(polynom)
 library(gridExtra)
 
 ## setwd and read in file
-setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
+#setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
+setwd("Dropbox/Hummingbird energetics/Feb2018/Data/")
 
 ## Read in files
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
