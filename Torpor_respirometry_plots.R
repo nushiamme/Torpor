@@ -224,7 +224,6 @@ ggplot(torpor, aes(100-Percentage_avg, Hours_torpid)) + geom_point(aes(col=Speci
 
 ## Supp Figure S9b
 ## Duration vs. minimum chamber temperature of the night
-  
 ggplot(torpor, aes(Tc_min_C, Hours_torpid2)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
   theme(legend.key.height = unit(3, 'lines')) + ylab("Torpor duration (hours)") + xlab(Tc_min.xlab) +
   scale_color_brewer(palette = "Set1", name="Species")
