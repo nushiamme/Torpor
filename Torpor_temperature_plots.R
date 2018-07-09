@@ -17,7 +17,7 @@ require(reshape)
 #### Setup ####
 ## Set wd and read in files
 setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
-setwd("Dropbox/Hummingbird energetics/Feb2018/Data") #GFU
+#setwd("Dropbox/Hummingbird energetics/Feb2018/Data") #GFU
 
 ## Read in files
 tc_summ <- read.csv("Tc_AllSites_summ.csv") # Chamber temperatures
@@ -28,8 +28,8 @@ my_theme <- theme_classic(base_size = 30) +
   theme(panel.border = element_rect(colour = "black", fill=NA))
 
 ## X-axis labels
-Tc.lab <- expression(atop(paste("Chamber Temperature ( ", degree,"C)")))
-Ta.lab <- expression(atop(paste("Ambient Temperature (", degree,"C)")))
+Tc.lab <- expression(atop(paste("Chamber temperature ( ", degree,"C)")))
+Ta.lab <- expression(atop(paste("Ambient temperature (", degree,"C)")))
 
 ## Ordering hour column
 ta_summ$Hour2 <- factor(ta_summ$Hour2, levels= c("19", "20", "21", "22", "23", "24",
