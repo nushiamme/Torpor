@@ -30,7 +30,7 @@ library(ggplot2)
 library(reshape)
 library(polynom)
 library(gridExtra)
-library(plyr) ## Add to readme
+library(plyr) # only for 'revalue' function
 
 
 ## setwd and read in file

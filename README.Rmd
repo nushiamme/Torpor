@@ -47,6 +47,7 @@ Figures not listed here were conceptual figures made in powerpoint.
     + reshape
     + polynom
     + gridExtra
+    + plyr
     
 #### Packages you will need for phylo_MCMCglmm script
     + MCMCglmm
