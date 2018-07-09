@@ -30,10 +30,11 @@ library(ggplot2)
 library(reshape)
 library(polynom)
 library(gridExtra)
+library(plyr) ## Add to readme
+
 
 ## setwd and read in file
-#setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
-setwd("Dropbox/Hummingbird energetics/Feb2018/Data/")
+setwd("C:\\Users\\shankar\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
 
 ## Read in files
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
@@ -50,10 +51,10 @@ my_theme <- theme_classic(base_size = 30) +
 my_theme2 <- my_theme + theme_classic(base_size = 20)
 
 ## Template axis labels
-Tc.xlab <- expression(atop(paste("Chamber Temperature (", degree,"C)"))) # for chamber temperature
+Tc.xlab <- expression(atop(paste("Chamber temperature (", degree,"C)"))) # for chamber temperature
 NEE_masslab <- 'Nighttime energy expenditure (kJ/g)' # for mass-corrected nighttime energy expenditure
 VO2_lab <- expression(paste(VO[2]~mL~O[2]/min))
-Tc_min.xlab <- expression(atop(paste("Minimum Chamber Temperature (", degree,"C)")))
+Tc_min.xlab <- expression(atop(paste("Minimum chamber temperature (", degree,"C)")))
 
 ## Function for adding a regression equation to graphs
 ## (Where y= table$column for y in the equation and x= table$column for x)
@@ -79,7 +80,11 @@ bblh_tnz$N_T <- factor(bblh_tnz$N_T, levels=c('T', 'N')) # Reorder levels BBLH t
 ## In torpor dataset
 ## Make species a sensible order, for just species that used torpor - used in Supp Fig S7
 torpor$Species2 <- factor(torpor$Species,
-                          levels = c('BBLH','RIHU','GCB','FBB','TBH', "WNJ"), ordered = T)
+                          levels = c('BBLH','RIHU', 'BLUH', 'GCB','FBB', 'EMB', 'TBH', 'WNJ'), ordered = T)
+## Make a column for Scientific code, as Ecology wants it
+torpor$Species_sciname <- torpor$Species2
+torpor$Species_sciname <- revalue(torpor$Species_sciname, c("BBLH"="CYLA", "RIHU"="EUFU", "BLUH"="LACL", "GCB"="HEJA", "FBB"="HERU", "EMB"="HEIM",
+                                  "TBH"="PHSY", "WNJ"="FLME"))
 
 #For Supp Fig S5, order and expand site names
 torpor$Site_full <- torpor$Site
@@ -106,9 +111,22 @@ torpor$Hours_torpid2[is.na(torpor$Hours_torpid2)] <- 0
 # at 14-15 degC. Only using subset of the dataset- just torpid values.
 # These measurements were taken under controlled conditions in 5 degC temperature steps, 
 # separately from all the other torpor measurements
+polyn.formula_lab <- bblh_controlled_torpor$VO2_all ~ poly(bblh_controlled_torpor$Temp_C, 2, raw = TRUE)
+m_pol_lab <- lm(polyn.formula_lab, bblh_controlled_torpor)
+polyn.eq_lab <- as.character(signif(as.polynomial(coef(m_pol_lab)), 2))
+polyn.text_lab <- paste(gsub("x", "~italic(x)", polyn.eq_lab, fixed = TRUE),
+                    paste("italic(R)^2",  
+                          format(summary(m_pol_lab)$r.squared, digits = 2), 
+                          sep = "~`=`~"),
+                    sep = "~~~~")
 bblh_VO2_temp <- ggplot(bblh_controlled_torpor, aes(Temp_C, VO2_all)) + 
-  geom_point(size=3) + my_theme2 + geom_smooth(stat='smooth', method='loess', color='black') +
-  ylab("Oxygen consumption (ml/min)") + xlab(Tc.xlab)
+  geom_point(size=3) + my_theme + 
+  geom_smooth(method = "lm", se = T, 
+              formula = y~ poly(x,2,raw=T), 
+              colour = "black") + 
+  annotate(geom = "text", x = 10, y = .2, label = polyn.text_lab, 
+           family = "serif", hjust = 0, parse = TRUE, size=10) +
+  ylab(VO2_lab) + xlab(Tc.xlab)
 plot(bblh_VO2_temp)
 
 ## Figure 3b, field measurements of torpor - natural temperature and photoperiod
@@ -160,7 +178,7 @@ dur_entrytime
 
 ## Supp Figure S7
 ## Savings plot by species
-savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species2, savings)) + 
+savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species_sciname, savings)) + 
   geom_boxplot(outlier.shape = 19, fill= "light grey") + xlab("Species") + 
   ylab("Hourly torpid energy savings (%)") + theme(legend.position="none") + my_theme +
   stat_summary(fun.data = give.n, geom = "text", vjust=-1, size=10)
@@ -200,15 +218,16 @@ ggplot(bblh_normo, aes(Temperature, VO2)) +
 
 ## Supp Figure S9a
 ## Energy savings vs. Duration
-ggplot(torpor, aes(100-Percentage_avg, Hours_torpid)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
+ggplot(torpor, aes(100-Percentage_avg, Hours_torpid)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
   theme(legend.key.height = unit(3, 'lines')) + xlab("Hourly energy savings (%)") + ylab("Torpor duration (hours)") +
-  scale_color_brewer(palette = "Set1")
+  scale_color_brewer(palette = "Set1", name="Species")
 
 ## Supp Figure S9b
 ## Duration vs. minimum chamber temperature of the night
-ggplot(torpor, aes(Tc_min_C, Hours_torpid2)) + geom_point(aes(col=Species), size=3, alpha=0.7) + my_theme +
+  
+ggplot(torpor, aes(Tc_min_C, Hours_torpid2)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
   theme(legend.key.height = unit(3, 'lines')) + ylab("Torpor duration (hours)") + xlab(Tc_min.xlab) +
-  scale_color_brewer(palette = "Set1")
+  scale_color_brewer(palette = "Set1", name="Species")
 
 ## Nighttime energy expenditure with and without rewarming costs - not mass-corrected
 ## Supp Figure S11
