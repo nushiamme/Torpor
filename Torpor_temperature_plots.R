@@ -13,10 +13,11 @@
 
 require(ggplot2)
 require(reshape)
+require(gridExtra)
 
 #### Setup ####
 ## Set wd and read in files
-setwd("C:\\Users\\ANUSHA\\Dropbox\\Hummingbird energetics\\Feb2018\\Data")
+setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\July2018\\Data")
 #setwd("Dropbox/Hummingbird energetics/Feb2018/Data") #GFU
 
 ## Read in files
@@ -66,22 +67,7 @@ m.tc$Site <- factor(m.tc$Site, levels=c('HC','SC','SWRS','MQ','SL')) # Reorder s
 levels(m.tc$Site) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
 
 #### Plots ####
-## Figure 2
-## Chamber Temp plots by hour, per site
-ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme + 
-  facet_grid(~Site, labeller = labeller(Site = label_wrap_gen(10))) +
-  geom_line(aes(group=Variable, col=Variable), size=1.5) +
-  scale_color_manual(values=c("Black", "Blue", "Red")) +
-  scale_alpha_manual(values = c(1, 0.5, 0.5)) +
-  theme(axis.text.x = element_text(angle = 60, size=20, hjust=1), 
-        legend.position="none", plot.title = element_text(size = 30),
-        panel.grid.major.y = element_line(size=.1, color="grey75"), 
-        strip.text.x = element_text(size = 18),
-        axis.title.y=element_text(vjust=-3)) + 
-  xlab("Hour") + ylab(Tc.lab) + scale_x_discrete(labels=Hour_labels_2) #+ ggtitle("b.")
-ChambTemp
-
-## Supp. Figure S3
+## Figure 2a
 ## Ambient temp plots by hour, per site
 AmbTemp <- ggplot(m.ta, aes(Hour,Temperature, alpha=Variable)) + facet_grid(.~Site) +  my_theme +
   facet_grid(~Site, labeller = labeller(Site = label_wrap_gen(10))) +
@@ -89,10 +75,31 @@ AmbTemp <- ggplot(m.ta, aes(Hour,Temperature, alpha=Variable)) + facet_grid(.~Si
   geom_line(aes(group=Variable, col=Variable), size=1.5) +
   scale_color_manual(values=c("Black", "Blue", "Red")) +
   scale_alpha_manual(values = c(1, 0.5, 0.5)) +
-  theme(axis.text.x = element_text(angle = 60, size=15, hjust=1), 
+  theme(axis.text.x = element_text(angle = 60, size=18, hjust=1), 
+        legend.position="none", plot.title = element_text(size = 30),
+        panel.grid.major.y = element_line(size=.1, color="grey75"), 
+        strip.text.x = element_text(size = 18),
+        axis.title.x = element_blank(),
+        axis.title.y=element_text(vjust=-3)) + 
+  ylim(0,35) +
+  ylab(Ta.lab) #+ ggtitle("a.") 
+AmbTemp
+
+# Figure 2b
+## Chamber Temp plots by hour, per site
+ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme + 
+  facet_grid(~Site, labeller = labeller(Site = label_wrap_gen(10))) +
+  scale_x_discrete(labels=Hour_labels_2) +
+  geom_line(aes(group=Variable, col=Variable), size=1.5) +
+  scale_color_manual(values=c("Black", "Blue", "Red")) +
+  scale_alpha_manual(values = c(1, 0.5, 0.5)) +
+  theme(axis.text.x = element_text(angle = 60, size=18, hjust=1), 
         legend.position="none", plot.title = element_text(size = 30),
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
         strip.text.x = element_text(size = 18),
         axis.title.y=element_text(vjust=-3)) + 
-  xlab("Hour") + ylab(Ta.lab) #+ ggtitle("a.") 
-AmbTemp
+  ylim(0,35) +
+  xlab("Hour") + ylab(Tc.lab)
+ChambTemp
+
+grid.arrange(AmbTemp, ChambTemp, ncol=1, nrow=2)
