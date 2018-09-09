@@ -8,8 +8,8 @@
 # This script contains code for the two temperature plots
 
 ## Contents:
-# Figure 2: Chamber Temp plots by hour, per site
-# Electronic supplementary material, Figure S3: Ambient temp plots by hour, per site
+# Figure 2a: Ambient temp plots by hour, per site
+# Figure 2b: Chamber Temp plots by hour, per site
 
 require(ggplot2)
 require(reshape)

@@ -12,11 +12,11 @@
 
 ### Contents
 ## Setup, read files in, format data
-## Table 3 and Supp Figure S4: Model for Probability of entry into torpor ~ mass
-## Supp Table S2: Summary of multiple NEE models
-## Table 3, Supp Figure S10: Plot of best model of nighttime energy expenditure 
+## Table 3: Model for Probability of entry into torpor ~ mass
+## Supp Table S1: Summary of multiple NEE models
+## Table 3: Plot of best model of nighttime energy expenditure 
 # (i.e. Mass-corrected NEE ~ torpor duration)
-## Table 3, Supp Table S3, Supp Figure S12: Rewarming analyses
+## Table 3, Supp Table S2: Rewarming analyses
 
 library(MCMCglmm)
 library(nlme)
@@ -112,7 +112,7 @@ prior4 <- list(
   G = list(G1 = list(V = diag(1), n = 1)))
 
 #### Model for probability of entry into torpor as a function of mass ####
-## Table 3 and Supp. Figure S4
+## Table 3
 ## Frequency converted into bernoulli individual-level torpor-not
 ##Try library(phylolm)
 
@@ -121,11 +121,11 @@ mfreq2 <- MCMCglmm(Tornor~Mass, random=~Species, family='ordinal',
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                    verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mfreq2) ## Table 3
-plot(mfreq2) ## Supp. Figure S4
+plot(mfreq2) ## Look at the model parameter distribution
 plot(mfreq2$VCV)
 
 #### Nighttime energy expenditure MCMCglmm models (stepwise) ####
-## All these model results are summarized in Supp. Table S2
+## All these model results are summarized in Supp. Table S1
 ## All these models use mass-corrected nighttime energy expenditure as the dependent variable
 ## Mass-corrected NEE as a function of Mass
 mNEE_mass<-MCMCglmm(NEE_mass~Mass, random=~Species, 
@@ -163,7 +163,7 @@ mNEE_dur_tc <-MCMCglmm(NEE_mass~Hours2+Tc_min_C, random=~Species,
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_tc) ## Table 3
 par(mar = rep(2, 4))
-plot(mNEE_dur_tc) ## Supp Figure S10
+plot(mNEE_dur_tc) ## Look at model parameter distribution
 
 ## Mass + Duration + min chamber temperature
 mNEE_mass_dur_tc <-MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C, random=~Species, 
@@ -213,7 +213,7 @@ mrewarm <- MCMCglmm(kJ_rewarming~Mass,
                        ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                        data=torpor[torpor$Torpid_not=="T",],
                        verbose=F,nitt=5e6, thin=1000)
-summary(mrewarm) ## In Supp. Table S3
+summary(mrewarm) ## In Supp. Table S2
 plot(mrewarm)
 
 ## Second rewarming model, including mass (g) and chamber temperature (deg C) during rewarming
@@ -222,8 +222,8 @@ mrewarm_tc <- MCMCglmm(kJ_rewarming~Mass+Rewarming_Tc,
                        ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                        data=torpor[torpor$Torpid_not=="T",],
                        verbose=F,nitt=5e6, thin=1000)
-summary(mrewarm_tc) ## Table 3 and in Supp Table S3
-plot(mrewarm_tc) ## Supp. Figure S12
+summary(mrewarm_tc) ## Table 3 and in Supp Table S2
+plot(mrewarm_tc) ## Look at model results plotted
 
 torpor$kJ_rewarming_mass <- torpor$kJ_rewarming/torpor$Mass
 mrewarm_mass_tc <- MCMCglmm(kJ_rewarming_mass~Mass+Rewarming_Tc, 
