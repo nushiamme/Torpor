@@ -26,7 +26,7 @@ library(caper)
 library(coda) # only for autocorr function
 
 #### Setup ####
-setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\Feb2018\\Data\\")
+setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\July2018\\Data\\")
 #GFU wd
 #setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Feb2018/Data/")
 
@@ -35,6 +35,10 @@ torpor <- read.csv("Torpor_individual_summaries_2.csv") #Torpor data file, each 
 
 ## Read in McGuire et al. 2014 hummingbird phylogeny
 tree<-read.tree("hum294.tre")
+
+## Generic plot theme
+my_theme <- theme_classic(base_size = 30) + 
+  theme(panel.border = element_rect(colour = "black", fill=NA))
 
 #### Adding columns ####
 
@@ -103,26 +107,36 @@ prior<-list(G=list(G1=list(V=1,nu=0.002)),R=list(V=1,nu=0.002))
 
 plot(torpor$Mass, torpor$Tornor)
 
-## To select priors
-k <- length(levels(torpor$Species))
-I <- diag(k-1)
-J <- matrix(rep(1, (k-1)^2), c(k-1, k-1))
-prior4 <- list(
-  R = list(fix=1, V=0.5 * (I + J), n = 1),
-  G = list(G1 = list(V = diag(1), n = 1)))
-
 #### Model for probability of entry into torpor as a function of mass ####
 ## Table 3
 ## Frequency converted into bernoulli individual-level torpor-not
 ##Try library(phylolm)
-
-## Do logistic
 mfreq2 <- MCMCglmm(Tornor~Mass, random=~Species, family='ordinal',
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                    verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mfreq2) ## Table 3
 plot(mfreq2) ## Look at the model parameter distribution
 plot(mfreq2$VCV)
+
+p1<-predict(mfreq2, interval="confidence")
+
+plot(torpor$Mass,torpor$Tornor)
+lines(p1[,1]~torpor$Mass,col="red")
+lines(p1[,2]~torpor$Mass,col="red",lty=2)
+lines(p1[,3]~torpor$Mass,col="red", lty=2)
+
+x <- torpor$Mass
+y <- torpor$Tornor
+mod.x <- mean(mfreq2$Sol[,1])
+mod.y <- mean(mfreq2$Sol[,2])
+
+## Plot probability of torpor use vs Mass
+ggplot(torpor, aes(Mass,Tornor)) + geom_point(size=3) + my_theme +
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+                          se = T) +
+  xlab("Mass (g)") + ylab("Probability of torpor use")
+
+#curve(plogis(mod.x+mod.y*x),col="red",add=TRUE)
 
 #### Nighttime energy expenditure MCMCglmm models (stepwise) ####
 ## All these model results are summarized in Supp. Table S1
@@ -145,7 +159,19 @@ mNEEmass_dur <-MCMCglmm(NEE_mass~Hours2, random=~Species,
                    verbose=F, nitt = 5e6, thin = 1000)
 summary(mNEEmass_dur)
 
+## Trying to plot predicted values
+pframe <- data.frame(ttt=factor(levels(culcita_dat$ttt),
+                                levels=levels(culcita_dat$ttt)))
+cpred1 <- predict(mNEEmass_dur,re.form=NA,newdata=pframe,type="response")
+
+
 plot(mNEEmass_dur)
+
+## Plot probability of torpor use vs Mass
+ggplot(torpor, aes(Hours2,NEE_mass)) + geom_point(size=3) + my_theme +
+  geom_smooth(method = "glm", method.args = list(family = "gaussian"), 
+              se = T) +
+  xlab("Duration of torpor (hours)") + ylab("Mass-corrected \n nighttime energy expenditure \n")
 
 #Compare raw and mass-corrected NRR (without allometric exponent)
 #plot(mcmc.list(mNEEmass_dur$VCV[, 1]))
