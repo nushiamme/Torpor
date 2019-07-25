@@ -1,6 +1,6 @@
 ---
 title: "README"
-subtitle: "Torpid hummingbirds- energy savings in temperate and tropical sites"
+subtitle: "Hummingbird torpor in context: duration, more than temperature, is the key to nighttime energy savings"
 output:
   md_document:
     variant: markdown_github
@@ -10,7 +10,7 @@ output:
 
 \*Equal authors
 
-Code by: Anusha Shankar, github/nushiamme; contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code/datasets
+Code by: Anusha Shankar, github/nushiamme; contact: nushiamme<at>gmail<dot>com for questions about code/datasets
 
 #### Code organisation
 The code is organized by data type into 3 scripts, for  
