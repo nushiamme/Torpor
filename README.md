@@ -2,7 +2,7 @@
 
 \*Equal authors
 
-Code by: Anusha Shankar, github/nushiamme; contact: anusha<dot>shankar<at>stonybrook<dot>edu for questions about code/datasets
+Code by: Anusha Shankar, github/nushiamme; contact: nushiamme<at>gmail<dot>com for questions about code/datasets
 
 #### Code organisation
 
@@ -39,6 +39,7 @@ Figures not listed here were conceptual figures made in powerpoint.
     + reshape
     + polynom
     + gridExtra
+    + plyr
 
 #### Packages you will need for phylo\_MCMCglmm script
 

@@ -48,7 +48,7 @@ my_theme2 <- my_theme + theme_classic(base_size = 20)
 
 ## Template axis labels
 Tc.xlab <- expression(atop(paste("Chamber temperature (", degree,"C)"))) # for chamber temperature
-NEE_masslab <- 'Nighttime energy expenditure (kJ/g)' # for mass-corrected nighttime energy expenditure
+NEE_lab <- 'Nighttime energy expenditure (kJ)' # for mass-corrected nighttime energy expenditure
 VO2_lab <- expression(paste(VO[2]~mL~O[2]/min))
 Tc_min.xlab <- expression(atop(paste("Minimum chamber temperature (", degree,"C)")))
 
@@ -88,7 +88,8 @@ torpor$Site_full <- factor(torpor$Site_full, levels=c('HC', 'SC', 'SWRS', 'MQ','
 levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
 
 ## Making a column for mass-corrected total Nighttime energy expenditure
-torpor$NEE_Mass <- torpor$NEE_kJ/torpor$Mass
+## Took this out December 8, 2019 as per reviewer suggestion
+#torpor$NEE_Mass <- torpor$NEE_kJ/torpor$Mass
 
 ## Savings column to convert percentage energy expended in torpor relative to 
 # normothermy, into savings relative to normothermy - used in Supp Fig S7
@@ -167,10 +168,10 @@ Hours_site <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Site_full, Hours_torpi
 Hours_site
 
 ## Figure S2b: NEE plot by site
-NEE_site <- ggplot(torpor, aes(Site_full, NEE_Mass)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
+NEE_site <- ggplot(torpor, aes(Site_full, NEE_kJ)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
   my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
                     axis.title=element_text(size=20)) + 
-  ylab(NEE_masslab) + xlab("Site")
+  ylab(NEE_lab) + xlab("Site")
 NEE_site
 ## Figure S2:
 grid.arrange(Hours_site, NEE_site, ncol=2, nrow=1)

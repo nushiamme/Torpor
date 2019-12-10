@@ -42,8 +42,9 @@ my_theme <- theme_classic(base_size = 30) +
 
 #### Adding columns ####
 
-#Mass-correct nighttime energy expenditure - done here to allow for 
-torpor$NEE_mass <- torpor$NEE_kJ/torpor$Mass
+#Mass-correct nighttime energy expenditure - done here to allow for modifications
+# Removed December 8, 2019 as per  reviewer suggestion
+#torpor$NEE_mass <- torpor$NEE_kJ/torpor$Mass
 
 #Converting NA's in Hours_torpid column into 0's.
 torpor$Hours2 <- torpor$Hours_torpid
@@ -138,26 +139,35 @@ ggplot(torpor, aes(Mass,Tornor)) + geom_point(size=3) + my_theme +
 
 #curve(plogis(mod.x+mod.y*x),col="red",add=TRUE)
 
+
+## Plot NEE vs duration
+ggplot(torpor, aes(Hours2,NEE_kJ)) + geom_point(size=3) + my_theme +
+  geom_smooth(method = "glm", method.args = list(family = "gaussian"), 
+              se = T) +
+  xlab("Duration of torpor (hours)") + ylab("Mass-corrected \n nighttime energy expenditure \n")
+
+
 #### Nighttime energy expenditure MCMCglmm models (stepwise) ####
 ## All these model results are summarized in Supp. Table S1
 ## All these models use mass-corrected nighttime energy expenditure as the dependent variable
-## Mass-corrected NEE as a function of Mass
-mNEE_mass<-MCMCglmm(NEE_mass~Mass, random=~Species, 
+## Removed Mass-corrected NEE as a function of Mass on December 8. 2019
+## And instead using raw NEE in kJ with mass just as a co-variate
+mNEE_mass<-MCMCglmm(NEE_kJ~Mass, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_mass)
 
 ## Nee (kJ/g) as a function of duration and mass
-mNEE_dur<-MCMCglmm(NEE_mass~Hours2+Mass, random=~Species, 
+mNEE_dur_mass<-MCMCglmm(NEE_kJ~Hours2+Mass, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_mass)
 
 ## As a function of duration of torpor - this is the best DIC+most parsimonious model - model used in paper
-mNEEmass_dur <-MCMCglmm(NEE_mass~Hours2, random=~Species, 
+mNEE_dur <-MCMCglmm(NEE_kJ~Hours2, random=~Species, 
                    ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                    verbose=F, nitt = 5e6, thin = 1000)
-summary(mNEEmass_dur)
+summary(mNEE_dur)
 
 ## Trying to plot predicted values
 pframe <- data.frame(ttt=factor(levels(culcita_dat$ttt),
@@ -167,24 +177,16 @@ cpred1 <- predict(mNEEmass_dur,re.form=NA,newdata=pframe,type="response")
 
 plot(mNEEmass_dur)
 
-## Plot probability of torpor use vs Mass
-ggplot(torpor, aes(Hours2,NEE_mass)) + geom_point(size=3) + my_theme +
-  geom_smooth(method = "glm", method.args = list(family = "gaussian"), 
-              se = T) +
-  xlab("Duration of torpor (hours)") + ylab("Mass-corrected \n nighttime energy expenditure \n")
-
-#Compare raw and mass-corrected NRR (without allometric exponent)
-#plot(mcmc.list(mNEEmass_dur$VCV[, 1]))
 
 ## Of min chamber temperature
-mNEE_tc<-MCMCglmm(NEE_mass~Tc_min_C, random=~Species, 
+mNEE_tc<-MCMCglmm(NEE_kJ~Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_tc)
 
 ## This is the best model in terms of lowest DIC value (by <2 points), but not most parsimonious
 ## Duration + min chamber temperature
-mNEE_dur_tc <-MCMCglmm(NEE_mass~Hours2+Tc_min_C, random=~Species, 
+mNEE_dur_tc <-MCMCglmm(NEE_kJ~Hours2+Tc_min_C, random=~Species, 
               ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
               verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_tc) ## Table 3
@@ -192,34 +194,34 @@ par(mar = rep(2, 4))
 plot(mNEE_dur_tc) ## Look at model parameter distribution
 
 ## Mass + Duration + min chamber temperature
-mNEE_mass_dur_tc <-MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C, random=~Species, 
+mNEE_mass_dur_tc <-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C, random=~Species, 
              ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
              verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_mass_dur_tc)
 
 ## As a function of hourly energy savings (as a quantile because otherwise 0's swamp differences
 # between non-zeros)
-mNEE_sav <- MCMCglmm(NEE_mass~savings_quantile, random=~Species, 
+mNEE_sav <- MCMCglmm(NEE_kJ~savings_quantile, random=~Species, 
                 ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                 verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_sav)
 plot(mNEE_sav)
 
 ## Duration + min temp + savings
-mNEE_dur_tc_sav <- MCMCglmm(NEE_mass~Hours2+Tc_min_C+savings_quantile, random=~Species, 
+mNEE_dur_tc_sav <- MCMCglmm(NEE_kJ~Hours2+Tc_min_C+savings_quantile, random=~Species, 
                 ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                 verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_dur_tc_sav)
 
 ## Mass + duration + min temp + savings
-mNEE_mass_dur_tc_sav <- MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C+savings_quantile, random=~Species, 
+mNEE_mass_dur_tc_sav <- MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C+savings_quantile, random=~Species, 
                             ginverse = list(Species=inv.phylo$Ainv), prior=prior, data=torpor, 
                             verbose=FALSE, nitt = 5e6, thin = 1000)
 summary(mNEE_mass_dur_tc_sav)
 
 ## NEE ~ 
 ### Full model including rewarming, Oct 2017
-mNEE_full <-MCMCglmm(NEE_mass~Mass+Hours2+Tc_min_C+savings_quantile+
+mNEE_full <-MCMCglmm(NEE_kJ~Mass+Hours2+Tc_min_C+savings_quantile+
                kJ_rewarming2, 
              random=~Species, ginverse = list(Species=inv.phylo$Ainv), 
              prior=prior, data=torpor, verbose=FALSE, nitt = 5e6, thin = 1000)
