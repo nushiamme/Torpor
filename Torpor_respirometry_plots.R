@@ -90,7 +90,6 @@ levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwestern Research Stati
 ## Savings column to convert percentage energy expended in torpor relative to 
 # normothermy, into savings relative to normothermy - used in Supp Fig S7
 
-##%%%% DO %%%%##
 torpor$savings <- 100-torpor$Percentage_avg_varRER
 
 bblh_controlled_torpor <- bblh_tnz[bblh_tnz$N_T=="T",] # Subsetting just torpor measurements from controlled lab data
@@ -186,7 +185,6 @@ NEE_site
 ## Figure S3:
 grid.arrange(Hours_site, NEE_site, ncol=2, nrow=1)
 
-##%%%% DO %%%%##
 ## Supp Figure S4a
 ## Duration vs. Energy savings
 ggplot(torpor, aes(savings, Hours_torpid)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
