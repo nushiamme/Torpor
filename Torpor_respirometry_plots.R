@@ -33,7 +33,7 @@ library(plyr) # only for 'revalue' function
 setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\July2018\\Data")
 
 ## Read in files
-torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
+torpor <- read.csv("Torpor_individual_summaries_NewRER_Mar2020.csv") # Torpor summaries per individual
 bblh_tnz <- read.csv("BroadBill.csv") ## For Figure 3, BBLH minimum body temperature
 bblh_VO2_temp_hourly <- read.csv("BBLH_hourly_VO2_field.csv") ## BBLH hourly temperature and VO2
 
@@ -87,15 +87,14 @@ torpor$Site_full <- torpor$Site
 torpor$Site_full <- factor(torpor$Site_full, levels=c('HC', 'SC', 'SWRS', 'MQ','SL'))
 levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
 
-## Making a column for mass-corrected total Nighttime energy expenditure
-## Took this out December 8, 2019 as per reviewer suggestion
-#torpor$NEE_Mass <- torpor$NEE_kJ/torpor$Mass
-
 ## Savings column to convert percentage energy expended in torpor relative to 
 # normothermy, into savings relative to normothermy - used in Supp Fig S7
-torpor$savings <- 100-torpor$Percentage_avg
+
+##%%%% DO %%%%##
+torpor$savings <- 100-torpor$Percentage_avg_varRER
 
 bblh_controlled_torpor <- bblh_tnz[bblh_tnz$N_T=="T",] # Subsetting just torpor measurements from controlled lab data
+
 
 ## for Supp Fig. S4b, 
 # create Hours_torpid2 column and change NA's to 0's for lm analyses; keep original Hours_torpid column with NA's
@@ -148,33 +147,66 @@ ggplot(bblh_torpid, aes(Temperature, VO2)) +
   my_theme + theme(legend.key.height = unit(3, 'lines')) +
   xlab(Tc.xlab) + ylab(VO2_lab)
 
-## Figure 4
+## Earlier Figure 4 (constant RER)
 ## Nighttime energy expenditure with and without rewarming costs - not mass-corrected
-rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_without_rewarming_kJ)) + 
+#rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_without_rewarming_kJ)) + 
+ # my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
+  #scale_colour_gradient(low="blue", high="red", name="Chamber \n temperature") +
+  #geom_point(aes(Mass, NEE_kJ), col='black')  +
+  #geom_segment(aes(x=Mass,y=NEE_kJ,xend=Mass,yend=NEE_without_rewarming_kJ, col=Rewarming_Tc),
+  #             arrow = arrow(length = unit(0.01, "npc"),type = "closed"), alpha=0.5) +
+  #xlab("Mass") + ylab("Nighttime energy expenditure (kJ)") 
+#rewarming_NEE
+
+## Figure 4 (variable RER)
+## Nighttime energy expenditure with and without rewarming costs - not mass-corrected
+rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_variableRER_minus_rewarming_kJ)) + 
   my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
   scale_colour_gradient(low="blue", high="red", name="Chamber \n temperature") +
-  geom_point(aes(Mass, NEE_kJ), col='black')  +
-  geom_segment(aes(x=Mass,y=NEE_kJ,xend=Mass,yend=NEE_without_rewarming_kJ, col=Rewarming_Tc),
+  geom_point(aes(Mass, NEE_kJ_variableRER), col='black')  +
+  geom_segment(aes(x=Mass,y=NEE_kJ_variableRER,xend=Mass,yend=NEE_variableRER_minus_rewarming_kJ, col=Rewarming_Tc),
                arrow = arrow(length = unit(0.01, "npc"),type = "closed"), alpha=0.5) +
   xlab("Mass") + ylab("Nighttime energy expenditure (kJ)") 
 rewarming_NEE
 
-## Supp Figure S2
-## Figure S2a : Duration of torpor by site
+## Supp Figure S3
+## Figure S3a : Duration of torpor by site
 Hours_site <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Site_full, Hours_torpid)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
   my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
                     axis.title=element_text(size=20)) + 
   ylab("Duration of torpor (hours)") + xlab("Site")
 Hours_site
 
-## Figure S2b: NEE plot by site
-NEE_site <- ggplot(torpor, aes(Site_full, NEE_kJ)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
+## Figure S3b: NEE plot by site
+NEE_site <- ggplot(torpor, aes(Site_full, NEE_kJ_variableRER)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
   my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
                     axis.title=element_text(size=20)) + 
   ylab(NEE_lab) + xlab("Site")
 NEE_site
-## Figure S2:
+## Figure S3:
 grid.arrange(Hours_site, NEE_site, ncol=2, nrow=1)
+
+##%%%% DO %%%%##
+## Supp Figure S4a
+## Duration vs. Energy savings
+ggplot(torpor, aes(savings, Hours_torpid)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
+  theme(legend.key.height = unit(3, 'lines')) + xlab("Hourly energy savings (%)") + ylab("Torpor duration (hours)") +
+  scale_color_brewer(palette = "Set1", name="Species") + ylim(0,8.5)
+
+
+## Supp Figure S4b
+## Duration vs. minimum chamber temperature of the night
+ggplot(torpor, aes(Tc_min_C, Hours_torpid2)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
+  theme(legend.key.height = unit(3, 'lines')) + ylab("Torpor duration (hours)") + xlab(Tc_min.xlab) +
+  scale_color_brewer(palette = "Set1", name="Species") + ylim(0,8.5)
+
+## Supp Figure S5
+## Savings plot by species
+savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species_sciname, savings)) + 
+  geom_boxplot(outlier.shape = 19, fill= "light grey") + xlab("Species") + 
+  ylab("Hourly torpid energy savings (%)") + theme(legend.position="none") + my_theme +
+  stat_summary(fun.data = give.n, geom = "text", vjust=-1, size=10)
+savings_plot
 
 ## Duration vs. time of entry
 ## Supp Figure S6
@@ -185,22 +217,3 @@ dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) +
             parse=T, size=5)
 dur_entrytime
 
-## Supp Figure S3
-## Savings plot by species
-savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species_sciname, savings)) + 
-  geom_boxplot(outlier.shape = 19, fill= "light grey") + xlab("Species") + 
-  ylab("Hourly torpid energy savings (%)") + theme(legend.position="none") + my_theme +
-  stat_summary(fun.data = give.n, geom = "text", vjust=-1, size=10)
-savings_plot
-
-## Supp Figure S4a
-## Duration vs. Energy savings
-ggplot(torpor, aes(100-Percentage_avg, Hours_torpid)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
-  theme(legend.key.height = unit(3, 'lines')) + xlab("Hourly energy savings (%)") + ylab("Torpor duration (hours)") +
-  scale_color_brewer(palette = "Set1", name="Species")
-
-## Supp Figure S4b
-## Duration vs. minimum chamber temperature of the night
-ggplot(torpor, aes(Tc_min_C, Hours_torpid2)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
-  theme(legend.key.height = unit(3, 'lines')) + ylab("Torpor duration (hours)") + xlab(Tc_min.xlab) +
-  scale_color_brewer(palette = "Set1", name="Species")
