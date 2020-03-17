@@ -46,8 +46,6 @@ torpor$Hours2[is.na(torpor$Hours2==TRUE)] <- 0
 
 #Making a column for energy savings as a proportion of energy expenditure 
 #savings = ((normothermic-torpor)/normothermic)*100
-
-##%%%% DO %%%%##
 torpor$savings <- 100-torpor$Percentage_avg_varRER
 torpor$savings2 <- 100-torpor$Percentage_avg_varRER
 torpor$savings2[is.na(torpor$savings2)] <- 0
