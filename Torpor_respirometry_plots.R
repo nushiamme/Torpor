@@ -58,8 +58,8 @@ lm_eqn <- function(y, x){
   m <- lm(y ~ x);
   eq <- substitute(italic(y) == 
                      a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
-                   list(a = format(coef(m)[1], digits = 2), 
-                        b = format(coef(m)[2], digits = 2), 
+                   list(a = format(coef(m)[[1]], digits = 2), 
+                        b = format(coef(m)[[2]], digits = 2), 
                         r2 = format(summary(m)$r.squared, digits = 3)))
   as.character(as.expression(eq));                 
 }
@@ -81,6 +81,11 @@ torpor$Species2 <- factor(torpor$Species,
 torpor$Species_sciname <- torpor$Species2
 torpor$Species_sciname <- revalue(torpor$Species_sciname, c("BBLH"="CYLA", "RIHU"="EUFU", "BLUH"="LACL", "GCB"="HEJA", "FBB"="HERU", "EMB"="HEIM",
                                   "TBH"="PHSY", "WNJ"="FLME"))
+
+## Rewarming kJ column - remove NA's
+torpor$kJ_rewarming <- torpor$kJ_RER0.71_rewarming_BeforeOvershoot
+torpor$kJ_rewarming[is.na(torpor$kJ_rewarming==TRUE)] <- 0
+
 
 #For Supp Fig S5, order and expand site names
 torpor$Site_full <- torpor$Site
@@ -159,14 +164,30 @@ ggplot(bblh_torpid, aes(Temperature, VO2)) +
 
 ## Figure 4 (variable RER)
 ## Nighttime energy expenditure with and without rewarming costs - not mass-corrected
-rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_variableRER_minus_rewarming_kJ)) + 
+rewarming_mass_NEE_temp <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_variableRER_minus_rewarming_kJ)) + 
   my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
   scale_colour_gradient(low="blue", high="red", name="Chamber \n temperature") +
   geom_point(aes(Mass, NEE_kJ_variableRER), col='black')  +
   geom_segment(aes(x=Mass,y=NEE_kJ_variableRER,xend=Mass,yend=NEE_variableRER_minus_rewarming_kJ, col=Rewarming_Tc),
                arrow = arrow(length = unit(0.01, "npc"),type = "closed"), alpha=0.5) +
   xlab("Mass") + ylab("Nighttime energy expenditure (kJ)") 
+rewarming_mass_NEE_temp
+
+## Variant of Fig. 4; reviewer's suggestion: leave mass out and plot NEE vs. rewarming
+rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], 
+                        aes(kJ_rewarming, NEE_variableRER_minus_rewarming_kJ)) + 
+  my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
+  scale_colour_gradient(low="blue", high="red", name="Chamber \n temperature") +
+  xlab("Rewarming (kJ)") + ylab("Nighttime energy expenditure \n - rewarming costs (kJ)") 
 rewarming_NEE
+
+rewarming_mass <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, kJ_rewarming)) + 
+  my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
+  scale_colour_gradient(low="blue", high="red", name="Chamber \n temperature") +
+  geom_smooth(method='lm') +
+  xlab ("log (Mass (g))") + ylab("log (Rewarming (kJ))")
+rewarming_mass
+
 
 ## Supp Figure S3
 ## Figure S3a : Duration of torpor by site

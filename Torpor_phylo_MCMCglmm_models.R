@@ -213,7 +213,7 @@ summary(mNEE_nophylo)
 
 #### Rewarming ####
 ## First model for rewarming, only taking mass (g) into account
-mrewarm <- MCMCglmm(kJ_rewarming~Mass, 
+mrewarm <- MCMCglmm(log(kJ_rewarming)~log(Mass), 
                        random=~Species, family='gaussian',
                        ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                        data=torpor[torpor$Torpid_not=="T",],
