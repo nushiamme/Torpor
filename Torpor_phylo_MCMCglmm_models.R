@@ -30,7 +30,7 @@ setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\July2018\\Data\\")
 #setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Feb2018/Data/")
 
 ## Read in torpor data file
-torpor <- read.csv("Torpor_individual_summaries_NewRER_Mar2020.csv") #Torpor data file, each row is an individual
+torpor <- read.csv("Torpor_individual_summaries.csv") #Torpor data file, each row is an individual
 
 ## Read in McGuire et al. 2014 hummingbird phylogeny
 tree<-read.tree("hum294.tre")
@@ -213,13 +213,12 @@ summary(mNEE_nophylo)
 
 #### Rewarming ####
 ## First model for rewarming, only taking mass (g) into account
-mrewarm <- MCMCglmm(log(kJ_rewarming)~log(Mass), 
+mrewarm <- MCMCglmm(kJ_rewarming~Mass, 
                        random=~Species, family='gaussian',
                        ginverse=list(Species=inv.phylo$Ainv), prior=prior, 
                        data=torpor[torpor$Torpid_not=="T",],
                        verbose=F,nitt=5e6, thin=1000)
 summary(mrewarm) ## In Supp. Table S2
-plot(mrewarm)
 
 ## Second rewarming model, including mass (g) and chamber temperature (deg C) during rewarming
 mrewarm_tc <- MCMCglmm(kJ_rewarming~Mass+Rewarming_Tc, 
