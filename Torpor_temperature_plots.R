@@ -28,12 +28,12 @@ bblh_tnz <- read.csv("BroadBill.csv") ## lab measurements of MR with temperature
 bblh_torpid <- bblh_tnz[bblh_tnz$N_T=="T",] ## Using lab torpor measurements for modeling
 
 ## General functions, adding columns, ordering factors
-my_theme <- theme_classic(base_size = 30) + 
-  theme(panel.border = element_rect(colour = "black", fill=NA))
+my_theme <- theme_classic(base_size = 40) + 
+  theme(panel.border = element_rect(colour = "black", size=0.1, fill=NA))
 
 ## X-axis labels
 Tc.lab <- expression(atop(paste("Chamber temperature ( ", degree,"C)")))
-Ta.lab <- expression(atop(paste("Ambient temperature (", degree,"C)")))
+Ta.lab <- expression(atop(paste("Ambient temperature ( ", degree,"C)")))
 
 ## Ordering hour column
 ta_summ$Hour2 <- factor(ta_summ$Hour2, levels= c("19", "20", "21", "22", "23", "24",
@@ -78,13 +78,15 @@ AmbTemp <- ggplot(m.ta, aes(Hour,Temperature, alpha=Variable)) + facet_grid(.~Si
   geom_line(aes(group=Variable, col=Variable), size=1.5) +
   scale_color_manual(values=c("Black", "Blue", "Red")) +
   scale_alpha_manual(values = c(1, 0.5, 0.5)) +
-  theme(axis.text.x = element_text(angle = 60, size=18, hjust=1), 
-        legend.position="none", plot.title = element_text(size = 30),
+  theme(axis.text.x = element_text(angle = 90, size=20, hjust=1), 
+        legend.position="none", plot.title = element_text(size = 40),
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
-        strip.text.x = element_text(size = 18),
-        axis.title.x = element_blank(),
-        axis.title.y=element_text(vjust=-3)) + 
-  ylim(0,35) +
+        strip.text.x = element_text(size = 25),
+        axis.title.y=element_text(vjust=-3),
+        axis.line = element_line(size=1),
+        strip.background = element_rect(size=1),
+        axis.title.x = element_blank()) + 
+  ylim(0,35) + 
   ylab(Ta.lab) #+ ggtitle("a.") 
 AmbTemp
 
@@ -96,11 +98,13 @@ ChambTemp <- ggplot(m.tc, aes(Hour,Temperature, alpha=Variable)) + my_theme +
   geom_line(aes(group=Variable, col=Variable), size=1.5) +
   scale_color_manual(values=c("Black", "Blue", "Red")) +
   scale_alpha_manual(values = c(1, 0.5, 0.5)) +
-  theme(axis.text.x = element_text(angle = 60, size=18, hjust=1), 
-        legend.position="none", plot.title = element_text(size = 30),
+  theme(axis.text.x = element_text(angle = 90, size=20, hjust=1), 
+        legend.position="none", plot.title = element_text(size = 40),
         panel.grid.major.y = element_line(size=.1, color="grey75"), 
-        strip.text.x = element_text(size = 18),
-        axis.title.y=element_text(vjust=-3)) + 
+        strip.text.x = element_text(size = 25),
+        axis.title.y=element_text(vjust=-3),
+        axis.line = element_line(size=1),
+        strip.background = element_rect(size=1)) + 
   ylim(0,35) +
   xlab("Hour") + ylab(Tc.lab)
 ChambTemp

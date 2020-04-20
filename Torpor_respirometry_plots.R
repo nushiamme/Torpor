@@ -39,9 +39,8 @@ bblh_VO2_temp_hourly <- read.csv("BBLH_hourly_VO2_field.csv") ## BBLH hourly tem
 
 # General functions ####
 ## Saving standard theme  
-my_theme <- theme_classic(base_size = 30) + 
-  theme(axis.title.y = element_text(color = "black", vjust = 2),
-        panel.border = element_rect(colour = "black", fill=NA))
+my_theme <- theme_classic(base_size = 25) + 
+  theme(axis.title.y = element_text(color = "black", vjust = 2))
 
 ## Theme with slightly smaller font
 my_theme2 <- my_theme + theme_classic(base_size = 15)
@@ -124,9 +123,10 @@ bblh_VO2_temp <- ggplot(bblh_controlled_torpor, aes(Temp_C, VO2_all)) +
   geom_smooth(method = "lm", se = T, 
               formula = y~ poly(x,2,raw=T), 
               colour = "black") + 
-  annotate(geom = "text", x = 10, y = .2, label = polyn.text_lab, 
+  annotate(geom = "text", x = 8, y = .2, label = polyn.text_lab, 
            family = "serif", hjust = 0, parse = TRUE, size=10) +
-  ylab(VO2_lab) + xlab(Tc.xlab)
+  ylab(VO2_lab) + xlab(Tc.xlab) + xlim(3,25) +
+  theme(axis.title.x = element_blank())
 plot(bblh_VO2_temp)
 
 ## Figure 3b, field measurements of torpor - natural temperature and photoperiod
@@ -145,24 +145,14 @@ ggplot(bblh_torpid, aes(Temperature, VO2)) +
   geom_smooth(method = "lm", se = T, 
               formula = y~ poly(x,2,raw=T), 
               colour = "black") + 
-  annotate(geom = "text", x = 10, y = .2, label = polyn.text, 
+  annotate(geom = "text", x = 8, y = .2, label = polyn.text, 
            family = "serif", hjust = 0, parse = TRUE, size=10) +
   ylim(-0.01,0.3) + guides(col=guide_legend(title="Individual ID")) +
-  my_theme + theme(legend.key.height = unit(3, 'lines')) +
+  my_theme + theme(legend.key.height = unit(2, 'lines')) + xlim(3,25) +
   xlab(Tc.xlab) + ylab(VO2_lab)
 
-## Earlier Figure 4 (constant RER)
-## Nighttime energy expenditure with and without rewarming costs - not mass-corrected
-#rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_without_rewarming_kJ)) + 
- # my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
-  #scale_colour_gradient(low="blue", high="red", name="Chamber \n temperature") +
-  #geom_point(aes(Mass, NEE_kJ), col='black')  +
-  #geom_segment(aes(x=Mass,y=NEE_kJ,xend=Mass,yend=NEE_without_rewarming_kJ, col=Rewarming_Tc),
-  #             arrow = arrow(length = unit(0.01, "npc"),type = "closed"), alpha=0.5) +
-  #xlab("Mass") + ylab("Nighttime energy expenditure (kJ)") 
-#rewarming_NEE
 
-## Figure 4 (variable RER)
+## Old Figure 4 (variable RER)
 ## Nighttime energy expenditure with and without rewarming costs - not mass-corrected
 rewarming_mass_NEE_temp <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE_variableRER_minus_rewarming_kJ)) + 
   my_theme2 + geom_point(aes(col=Rewarming_Tc), size=3, alpha=0.5) +
@@ -173,19 +163,19 @@ rewarming_mass_NEE_temp <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, NEE
   xlab("Mass") + ylab("Nighttime energy expenditure (kJ)") 
 rewarming_mass_NEE_temp
 
-## Variant of Fig. 4; reviewer's suggestion: leave mass out and plot NEE vs. rewarming
+## Final Fig. 4; reviewer's suggestion: leave mass out and plot NEE vs. rewarming
 rewarming_NEE <- ggplot(torpor[torpor$Torpid_not=="T",], 
                         aes(kJ_rewarming, NEE_kJ_variableRER)) + 
-  my_theme2 + geom_point(aes(fill=Rewarming_Tc), pch=21, size=4, alpha=0.9, col='black') +
-  scale_fill_gradient(low="blue", high="white", name="Chamber \n temperature") +
-  xlab("Rewarming (kJ)") + ylab("Nighttime energy expenditure (kJ)") 
+  my_theme + geom_point(aes(fill=Rewarming_Tc), pch=21, size=4, alpha=0.9, col='black') +
+  scale_fill_gradient(low="blue", high="white", name="Chamber \ntemperature") +
+  xlab("Rewarming (kJ)") + ylab("Nighttime \n energy expenditure (kJ)") 
 rewarming_NEE
 
 rewarming_mass <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Mass, kJ_rewarming)) + 
-  my_theme2 + geom_point(aes(fill=Rewarming_Tc), pch=21, size=4, alpha=0.9, col='black') +
-  scale_fill_gradient(low="blue", high="white", name="Chamber \n temperature") +
+  my_theme + geom_point(aes(fill=Rewarming_Tc), pch=21, size=4, alpha=0.9, col='black') +
+  scale_fill_gradient(low="blue", high="white", name="Chamber \ntemperature") +
   geom_smooth(method='lm') +
-  xlab ("Mass (g)") + ylab("Rewarming (kJ)")
+  xlab ("Mass (g)") + ylab("\n Rewarming (kJ)")
 rewarming_mass
 
 grid.arrange(rewarming_NEE, rewarming_mass, ncol=1, nrow=2)
