@@ -1,5 +1,6 @@
 ## Code for paper titled:
-#"Torpid hummingbirds- energy savings in temperate and tropical sites"
+#"Hummingbird torpor in context: duration, more than temperature, 
+# is key to nighttime energy savings"
 ## Paper authors: Anusha Shankar*, Rebecca J Schroeder*, 
 # Susan M Wethington, Catherine H Graham, Donald R Powers
 ## *Equal authors
@@ -14,10 +15,13 @@
 ## Figure 4: To test the effect of rewarming costs on total nighttime energy expenditure,
 # we plot total nighttime energy expenditure including rewarming (small black dots), and excluding rewarming 
 # (coloured dots), as a function of individual mass
-## Supplementary Figure S2: Site-wise plot comparing total duration and total nighttime energy expenditure
-## Supplementary Figure S3: Average hourly torpid energy savings relative to normothermy
-## Supplementary Figure S4a: Torpor duration vs. minimum chamber temperature (Tc min) for the night. 
-## Supplementary Figure S4b: Torpor duration vs. average hourly energy savings in torpor relative to normothermy.
+## Appendix Figures:
+## Appendix Figure A2: Sample graph of energy expenditure (Joules) of a green-crowned brilliant over the course of a night
+## Appendix Figure A3: Site-wise measures of a. duration (hours) of torpor and b. nighttime energy expenditure (kJ)
+## Appendix Figure A4a: Torpor duration vs. minimum chamber temperature (Tc min) for the night. 
+## Appendix Figure A4b: Torpor duration vs. average hourly energy savings in torpor relative to normothermy.
+## Appendix Figure A5: Average hourly torpid energy savings relative to normothermy for all individuals that used torpor across all sites
+## Appendix Figure A6: The probability of entering torpor is a negative binomial function of the mass of the individual. This is a graphical depiction of model 1 in Table 3 of the main paper
 
 
 #### Setup #### 
@@ -36,6 +40,7 @@ setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\July2018\\Data")
 torpor <- read.csv("Torpor_individual_summaries.csv") # Torpor summaries per individual
 bblh_tnz <- read.csv("BroadBill.csv") ## For Figure 3, BBLH minimum body temperature
 bblh_VO2_temp_hourly <- read.csv("BBLH_hourly_VO2_field.csv") ## BBLH hourly temperature and VO2
+gcb_0720 <- read.csv("E14_0720_GCB_no_bsln_Rewarm.csv")
 
 # General functions ####
 ## Saving standard theme  
@@ -44,6 +49,11 @@ my_theme <- theme_classic(base_size = 25) +
 
 ## Theme with slightly smaller font
 my_theme2 <- my_theme + theme_classic(base_size = 15)
+
+## Theme for Fig A2 
+my_theme_blank <- theme_classic(base_size = 30) + 
+  theme(axis.title.y = element_text(vjust = 2),
+        panel.border = element_blank())
 
 ## Template axis labels
 Tc.xlab <- expression(atop(paste("Chamber temperature (", degree,"C)"))) # for chamber temperature
@@ -86,7 +96,7 @@ torpor$kJ_rewarming <- torpor$kJ_RER0.71_rewarming_BeforeOvershoot
 torpor$kJ_rewarming[is.na(torpor$kJ_rewarming==TRUE)] <- 0
 
 
-#For Supp Fig S5, order and expand site names
+#For Supp Fig A3, order and expand site names
 torpor$Site_full <- torpor$Site
 torpor$Site_full <- factor(torpor$Site_full, levels=c('HC', 'SC', 'SWRS', 'MQ','SL'))
 levels(torpor$Site_full) <- c("Harshaw", "Sonoita", "Southwestern Research Station", "Maquipucuna", "Santa Lucia")
@@ -99,7 +109,7 @@ torpor$savings <- 100-torpor$Percentage_avg_varRER
 bblh_controlled_torpor <- bblh_tnz[bblh_tnz$N_T=="T",] # Subsetting just torpor measurements from controlled lab data
 
 
-## for Supp Fig. S4b, 
+## for Fig. A4b, 
 # create Hours_torpid2 column and change NA's to 0's for lm analyses; keep original Hours_torpid column with NA's
 torpor$Hours_torpid2 <- torpor$Hours_torpid
 torpor$Hours_torpid2[is.na(torpor$Hours_torpid2)] <- 0
@@ -180,38 +190,60 @@ rewarming_mass
 
 grid.arrange(rewarming_NEE, rewarming_mass, ncol=1, nrow=2)
 
+### Figures for Appendix 
+## Fig A2: Sample torpor night; Whole night of energy expenditure for one individual
+gcb_0720$Category <- factor(gcb_0720$Category, levels=c("B", "N", "R", "T"), 
+                            labels=c("B", "Normothermy", "Rewarming", "Torpor"))
+torCol <- c("white", "black", "red", "purple")
+names(torCol) <- levels(gcb_0720$Category)
+colScale <- scale_colour_manual(name = "Category", values = torCol)
+ggplot(NULL, aes(x=SampleNo, y=EE_J, col=Category)) +
+  geom_path(data=gcb_0720[gcb_0720$SampleNo<20000 & gcb_0720$Category=="Normothermy",], size=1.25) +
+  geom_path(data=gcb_0720[gcb_0720$SampleNo>30000 & gcb_0720$Category=="Normothermy",], size=1.25) +
+  geom_path(data=gcb_0720[gcb_0720$Category=="Torpor",], size=1.25) +
+  geom_path(data=gcb_0720[gcb_0720$Category=="Rewarming",], size=1.25) +
+  my_theme_blank + colScale + 
+  theme(axis.text.x = element_text(angle=30, hjust=1, size=20),
+        legend.key.height=unit(3,"line"),
+        axis.line.x = element_line(colour = "grey50"),
+        axis.line.y = element_line(colour = "grey50")) +
+  scale_x_continuous(breaks= seq(0,36000,3600)) +
+  #geom_hline(yintercept=seq(0,50,2)) +
+  #ylim(0,50) + 
+  xlab("Hours") + 
+  ylab("Energy expenditure (J)")
 
-## Supp Figure S3
-## Figure S3a : Duration of torpor by site
+## Figure A3
+## Figure A3a : Duration of torpor by site
 Hours_site <- ggplot(torpor[torpor$Torpid_not=="T",], aes(Site_full, Hours_torpid)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
   my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
                     axis.title=element_text(size=20)) + 
   ylab("Duration of torpor (hours)") + xlab("Site")
 Hours_site
 
-## Figure S3b: NEE plot by site
+## Figure A3b: NEE plot by site
 NEE_site <- ggplot(torpor, aes(Site_full, NEE_kJ_variableRER)) + geom_boxplot(fill='lightgrey', outlier.size = 3) +
   my_theme2 + theme(axis.text.x = element_text(angle = 20, size=15, hjust=1, color='black'),
                     axis.title=element_text(size=20)) + 
   ylab(NEE_lab) + xlab("Site")
 NEE_site
-## Figure S3:
+## Figure A3:
 grid.arrange(Hours_site, NEE_site, ncol=2, nrow=1)
 
-## Supp Figure S4a
+## Figure A4a
 ## Duration vs. Energy savings
 ggplot(torpor, aes(savings, Hours_torpid)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
   theme(legend.key.height = unit(3, 'lines')) + xlab("Hourly energy savings (%)") + ylab("Torpor duration (hours)") +
   scale_color_brewer(palette = "Set1", name="Species") + ylim(0,8.5)
 
 
-## Supp Figure S4b
+## Figure A4b
 ## Duration vs. minimum chamber temperature of the night
 ggplot(torpor, aes(Tc_min_C, Hours_torpid2)) + geom_point(aes(col=Species_sciname), size=3, alpha=0.7) + my_theme +
   theme(legend.key.height = unit(3, 'lines')) + ylab("Torpor duration (hours)") + xlab(Tc_min.xlab) +
   scale_color_brewer(palette = "Set1", name="Species") + ylim(0,8.5)
 
-## Supp Figure S5
+## Figure A5
 ## Savings plot by species
 savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species_sciname, savings)) + 
   geom_boxplot(outlier.shape = 19, fill= "light grey") + xlab("Species") + 
@@ -220,7 +252,7 @@ savings_plot <- ggplot(torpor[!is.na(torpor$savings),], aes(Species_sciname, sav
 savings_plot
 
 ## Duration vs. time of entry
-## Supp Figure S6
+## Figure A6
 dur_entrytime <- ggplot(torpor, aes(EntryTime_numeric, Hours_torpid)) + 
   geom_point(size=2) + my_theme2 + xlab("Hour of entry") + ylab("Duration of torpor (hours)") +
   geom_smooth(method=lm, size=1, col="black") +
