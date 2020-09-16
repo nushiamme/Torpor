@@ -23,9 +23,11 @@ library(ape)
 library(geiger) # for treedata() function
 library(caper)
 library(coda) # only for autocorr function
+library(here) #sets a default working directory on your computer so that they script will work on others' computers
 
 #### Setup ####
-setwd("C:\\Users\\nushi\\Dropbox\\Hummingbird energetics\\July2018\\Data\\")
+#AS wd
+#setwd("..\\Dropbox\\Hummingbird energetics\\July2018\\Data\\")
 #GFU wd
 #setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Feb2018/Data/")
 
@@ -77,6 +79,9 @@ tree$tip.label[219]<-"BBLH"
 tree$tip.label[163]<-"BLUH"
 tree$tip.label[156]<-"RIHU"
 
+## Make sure species in a factor
+torpor$Species <- as.factor(torpor$Species)
+## Make it a data frame and then match up the phylogeny names to the torpor Species variable
 tips<-data.frame(levels(torpor$Species))
 colnames(tips) <- "tips"
 rownames(tips)<-tips$tips
