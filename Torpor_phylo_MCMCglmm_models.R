@@ -27,7 +27,7 @@ library(here) #sets a default working directory on your computer so that they sc
 
 #### Setup ####
 #AS wd
-#setwd("..\\Dropbox\\Hummingbird energetics\\July2018\\Data\\")
+setwd("C:\\Users/nushi/Dropbox\\Hummingbird energetics\\July2018\\Data\\")
 #GFU wd
 #setwd("/Users/anshankar/Dropbox/Hummingbird energetics/Feb2018/Data/")
 
@@ -88,7 +88,7 @@ rownames(tips)<-tips$tips
 
 #match tree to data, prune tree, species names should be in rownnames of "data" 
 tre1<-treedata(tree, tips)$phy
-#To check that the reationships between species in the trimmed tree look right
+#To check that the relationships between species in the trimmed tree look right
 plot(tre1) 
 
 #### Models ####
